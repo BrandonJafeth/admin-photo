@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import AboutUsManager from '@/components/features/about-us/AboutUsManager'
+import HeroImagesManager from '@/components/features/hero-images/HeroImagesManager'
 import { Button } from '@/components/ui/button'
 
 type Section = 'hero' | 'about-us' | 'contact' | 'social'
@@ -46,16 +47,7 @@ export default function ContenidoPage() {
 
       {/* Contenido de cada sección */}
       <div className="h-[calc(100vh-8rem)]">
-        {activeSection === 'hero' && (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-2">
-              <h2 className="text-xl font-semibold">Sección Hero</h2>
-              <p className="text-muted-foreground">
-                Próximamente: Editor de la sección Hero
-              </p>
-            </div>
-          </div>
-        )}
+        {activeSection === 'hero' && <HeroImagesManager />}
 
         {activeSection === 'about-us' && <AboutUsManager />}
 

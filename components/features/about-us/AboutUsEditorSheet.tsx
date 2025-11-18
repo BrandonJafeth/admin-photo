@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { AboutUsFormData } from '@/lib/validations/aboutUs'
+import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
+import { Upload, Loader2 } from 'lucide-react'
 
 interface AboutUsEditorSheetProps {
   isOpen: boolean
@@ -42,7 +44,38 @@ export function AboutUsEditorSheet({
     handleSubmit,
     formState: { errors, isDirty },
     reset,
+    setValue,
   } = form
+
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validar archivo
+    const validationError = getImageValidationError(file)
+    if (validationError) {
+      setUploadError(validationError)
+      return
+    }
+
+    setUploadError(null)
+
+    try {
+      setValue('image_url', URL.createObjectURL(file))
+      setValue('image_alt', file.name.replace(/\.[^/.]+$/, ''))
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    } catch (error) {
+      setUploadError(
+        error instanceof Error ? error.message : 'Error al procesar la imagen'
+      )
+    }
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -119,6 +152,48 @@ export function AboutUsEditorSheet({
               </div>
             )}
 
+            {/* Upload Button */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Subir Nueva Imagen</Label>
+              <div className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={isUploading}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full gap-2"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Subiendo...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Seleccionar Imagen
+                    </>
+                  )}
+                </Button>
+              </div>
+              {uploadError && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <span>⚠</span> {uploadError}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Formatos: JPEG, PNG, WebP, GIF • Máximo: 5MB
+              </p>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="image_url" className="text-sm font-medium">
                 URL de la Imagen
@@ -135,7 +210,7 @@ export function AboutUsEditorSheet({
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                📸 Pega la URL de la imagen aquí
+                📸 O pega la URL de la imagen aquí manualmente
               </p>
             </div>
 
