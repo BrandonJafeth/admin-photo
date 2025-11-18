@@ -1,0 +1,27 @@
+'use client'
+
+import React from 'react'
+
+export function TooltipProvider({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>
+}
+
+export function Tooltip({ children }: { children: React.ReactNode }) {
+  return <div>{children}</div>
+}
+
+export function TooltipTrigger({ children, asChild }: any) {
+  return <>{children}</>
+}
+
+export function TooltipContent({ children, ...props }: any) {
+  // Only forward safe DOM props like `className` and `hidden` if provided.
+  const { className, hidden } = props || {}
+  return (
+    <div className={className} hidden={hidden}>
+      {children}
+    </div>
+  )
+}
+
+export default Tooltip
