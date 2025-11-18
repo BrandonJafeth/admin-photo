@@ -1,3 +1,4 @@
-import NuevoServicioPage from '../../../../(dashboard)/servicios/nuevo/page'
+import NuevoServicioPage from "@/app/(dashboard)/servicios/nuevo/page";
+
 
 export default NuevoServicioPage
