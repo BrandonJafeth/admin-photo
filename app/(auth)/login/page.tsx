@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
-import { useLogin } from '../../hooks/useLogin'
-import type { SignInPayload } from '../../services/auth.service'
+import { useLogin } from '@/hooks/useLogin'
+import type { SignInPayload } from '@/services/auth.service'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('adminjoerldsnbds@gmail.com')

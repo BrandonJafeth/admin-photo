@@ -6,14 +6,15 @@ export const metadata = {
   title: 'Admin Dashboard',
 }
 
-export default function DashboardLayout({ }: { children: React.ReactNode }) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div >
+      <div className="flex min-h-screen w-full">
         <Sidebar />
-
-              <SidebarHeaderTrigger />
-
+        <main className="flex-1">
+          <SidebarHeaderTrigger />
+          {children}
+        </main>
       </div>
     </SidebarProvider>
   )

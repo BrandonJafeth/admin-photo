@@ -1,8 +1,8 @@
 'use client'
 
+import { signIn, SignInPayload } from '@/services/auth.service'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { signIn, SignInPayload } from '../services/auth.service'
 
 export function useLogin() {
   const router = useRouter()
@@ -12,7 +12,7 @@ export function useLogin() {
       return await signIn(payload)
     },
     onSuccess: async () => {
-      router.push('/admin')
+      router.push('/dashboard')
     },
   })
 }
