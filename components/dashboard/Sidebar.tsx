@@ -27,31 +27,31 @@ export default function Sidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/admin">Dashboard</Link>
+              <Link href="/dashboard">Dashboard</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/admin/contenido">Contenido</Link>
+              <Link href="/contenido">Contenido</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/admin/servicios">Servicios</Link>
+              <Link href="/servicios">Servicios</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/admin/galeria">Galería</Link>
+              <Link href="/galeria">Galería</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/admin/mensajes">Mensajes</Link>
+              <Link href="/mensajes">Mensajes</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

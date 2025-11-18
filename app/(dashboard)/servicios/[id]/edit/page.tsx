@@ -1,3 +1,5 @@
+'use client'
+
 import ServicesManager from '@/components/features/ServicesManager'
 import { useParams } from 'next/navigation'
 
