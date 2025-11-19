@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Upload, Trash2, Eye, EyeOff, GripVertical, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function HeroImagesManager() {
   const { data: images = [], isLoading } = useHeroImages()
@@ -113,13 +114,29 @@ export default function HeroImagesManager() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return
-
-    try {
-      await deleteImage.mutateAsync(id)
-    } catch (error) {
-      console.error('Error al eliminar:', error)
-    }
+    toast.warning('¿Eliminar imagen?', {
+      description: 'Esta acción no se puede deshacer.',
+      action: {
+        label: 'Eliminar',
+        onClick: async () => {
+          try {
+            await deleteImage.mutateAsync(id)
+            toast.success('Imagen eliminada', {
+              description: 'La imagen se eliminó correctamente',
+            })
+          } catch (error) {
+            console.error('Error al eliminar:', error)
+            toast.error('Error al eliminar', {
+              description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
+            })
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancelar',
+        onClick: () => {},
+      },
+    })
   }
 
   const handleSaveEdit = async (id: string) => {

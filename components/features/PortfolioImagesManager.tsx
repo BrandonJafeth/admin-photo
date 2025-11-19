@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Upload, Trash2, Eye, EyeOff, GripVertical, Loader2, Pencil } from 'lucide-react'
 import { PortfolioImageEditSheet } from './portfolio-images/PortfolioImageEditSheet'
+import { toast } from 'sonner'
 
 export default function PortfolioImagesManager() {
   const { data: images = [], isLoading } = usePortfolioImages()
@@ -119,13 +120,29 @@ export default function PortfolioImagesManager() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return
-
-    try {
-      await deleteImage.mutateAsync(id)
-    } catch (error) {
-      console.error('Error al eliminar:', error)
-    }
+    toast.warning('¿Eliminar imagen?', {
+      description: 'Esta acción no se puede deshacer.',
+      action: {
+        label: 'Eliminar',
+        onClick: async () => {
+          try {
+            await deleteImage.mutateAsync(id)
+            toast.success('Imagen eliminada', {
+              description: 'La imagen se eliminó correctamente',
+            })
+          } catch (error) {
+            console.error('Error al eliminar:', error)
+            toast.error('Error al eliminar', {
+              description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
+            })
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancelar',
+        onClick: () => {},
+      },
+    })
   }
 
   const editingImage = images.find(img => img.id === editingId)

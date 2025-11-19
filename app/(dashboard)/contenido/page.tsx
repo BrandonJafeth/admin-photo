@@ -28,20 +28,6 @@ export default function ContenidoPage() {
           >
             Sobre Nosotros
           </Button>
-          <Button
-            variant={activeSection === 'contact' ? 'default' : 'ghost'}
-            onClick={() => setActiveSection('contact')}
-            size="sm"
-          >
-            Contacto
-          </Button>
-          <Button
-            variant={activeSection === 'social' ? 'default' : 'ghost'}
-            onClick={() => setActiveSection('social')}
-            size="sm"
-          >
-            Redes Sociales
-          </Button>
         </div>
       </div>
 

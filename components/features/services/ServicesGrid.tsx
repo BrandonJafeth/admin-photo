@@ -6,6 +6,7 @@ import { useDeleteService, useUpdateService, useUpdateServicesOrder } from '@/ho
 import { Button } from '@/components/ui/button'
 import { Trash2, Eye, EyeOff, GripVertical, Pencil, Copy } from 'lucide-react'
 import { ServiceEditSheet } from './ServiceEditSheet'
+import { toast } from 'sonner'
 
 
 interface ServicesGridProps {
@@ -68,14 +69,30 @@ export function ServicesGrid({ services }: ServicesGridProps) {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este servicio?')) return
-
-    try {
-      await deleteService.mutateAsync(id)
-    } catch (error) {
-      console.error('Error al eliminar:', error)
-    }
+  const handleDelete = async (id: string, title: string) => {
+    toast.warning('¿Eliminar servicio?', {
+      description: `Estás a punto de eliminar "${title}". Esta acción no se puede deshacer.`,
+      action: {
+        label: 'Eliminar',
+        onClick: async () => {
+          try {
+            await deleteService.mutateAsync(id)
+            toast.success('Servicio eliminado', {
+              description: 'El servicio se eliminó correctamente',
+            })
+          } catch (error) {
+            console.error('Error al eliminar:', error)
+            toast.error('Error al eliminar', {
+              description: 'No se pudo eliminar el servicio. Intenta nuevamente.',
+            })
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancelar',
+        onClick: () => {},
+      },
+    })
   }
 
   const handleDuplicate = async (service: Service) => {
@@ -197,7 +214,7 @@ export function ServicesGrid({ services }: ServicesGridProps) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleDelete(service.id)}
+                  onClick={() => handleDelete(service.id, service.title)}
                   className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                   title="Eliminar"
                 >

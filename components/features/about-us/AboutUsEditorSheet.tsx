@@ -15,6 +15,7 @@ import {
 import { AboutUsFormData } from '@/lib/validations/aboutUs'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
 import { Upload, Loader2 } from 'lucide-react'
+import { watch } from 'fs/promises'
 
 interface AboutUsEditorSheetProps {
   isOpen: boolean
@@ -45,6 +46,7 @@ export function AboutUsEditorSheet({
     formState: { errors, isDirty },
     reset,
     setValue,
+    watch,
   } = form
 
   const [isUploading, setIsUploading] = useState(false)
@@ -111,7 +113,7 @@ export function AboutUsEditorSheet({
 
             <div className="space-y-2">
               <Label htmlFor="description" className="text-sm font-semibold">
-                Descripción *
+                Descripción * ({watch('description')?.length || 0}/2000)
               </Label>
               <textarea
                 id="description"
@@ -125,7 +127,7 @@ export function AboutUsEditorSheet({
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Usa saltos de línea para separar párrafos
+                💡 Usa saltos de línea para separar párrafos
               </p>
             </div>
           </div>

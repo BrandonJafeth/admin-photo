@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import { Service } from '@/services/services.service'
 import { useUpdateService } from '@/hooks/useServices'
-import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
+import { getImageValidationError, uploadToCloudinary } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/sheet'
 import { Upload, Loader2 } from 'lucide-react'
 import { ServiceGalleryManager } from './ServiceGalleryManager'
+import { toast } from 'sonner'
 
 interface ServiceEditSheetProps {
   service: Service
@@ -79,6 +80,28 @@ export function ServiceEditSheet({
   }
 
   const handleSave = async () => {
+    // Validar campos requeridos
+    if (!title || title.length < 3 || title.length > 200) {
+      toast.error('Error de validación', {
+        description: 'El título debe tener entre 3 y 200 caracteres',
+      })
+      return
+    }
+
+    if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.startsWith('-') || slug.endsWith('-')) {
+      toast.error('Error de validación', {
+        description: 'El slug debe ser válido (solo letras minúsculas, números y guiones)',
+      })
+      return
+    }
+
+    if (!description || description.length < 20 || description.length > 2000) {
+      toast.error('Error de validación', {
+        description: 'La descripción debe tener entre 20 y 2000 caracteres',
+      })
+      return
+    }
+
     try {
       await updateService.mutateAsync({
         id: service.id,
@@ -92,10 +115,24 @@ export function ServiceEditSheet({
           page_description: pageDescription || undefined,
         },
       })
+      toast.success('¡Servicio actualizado!', {
+        description: 'Los cambios se guardaron correctamente',
+      })
       onClose()
     } catch (error) {
       console.error('Error al guardar:', error)
+      toast.error('Error al guardar', {
+        description: 'No se pudieron guardar los cambios. Intenta nuevamente.',
+      })
     }
+  }
+
+  // Función para verificar si hay errores de validación
+  const hasValidationErrors = () => {
+    if (!title || title.length < 3 || title.length > 200) return true
+    if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.startsWith('-') || slug.endsWith('-')) return true
+    if (!description || description.length < 20 || description.length > 2000) return true
+    return false
   }
 
   return (
@@ -174,7 +211,7 @@ export function ServiceEditSheet({
           {/* Título */}
           <div className="space-y-2 border-t pt-6">
             <Label htmlFor="title" className="text-sm font-medium">
-              Título *
+              Título <span className="text-red-500">*</span>
             </Label>
             <Input
               id="title"
@@ -182,36 +219,67 @@ export function ServiceEditSheet({
               onChange={e => setTitle(e.target.value)}
               placeholder="Ej: BODAS"
             />
+            {title && title.length < 3 && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <span>⚠</span> El título debe tener al menos 3 caracteres
+              </p>
+            )}
+            {title && title.length > 200 && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> El título es demasiado largo (máx. 200 caracteres)
+              </p>
+            )}
           </div>
 
           {/* Slug */}
           <div className="space-y-2">
             <Label htmlFor="slug" className="text-sm font-medium">
-              Slug (URL) *
+              Slug (URL) <span className="text-red-500">*</span>
             </Label>
             <Input
               id="slug"
               value={slug}
-              onChange={e => setSlug(e.target.value)}
+              onChange={e => setSlug(e.target.value.toLowerCase())}
               placeholder="Ej: bodas"
+              className="font-mono text-sm"
             />
+            {slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> Solo letras minúsculas, números y guiones. Ej: fotografia-bodas
+              </p>
+            )}
+            {slug && (slug.startsWith('-') || slug.endsWith('-')) && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> No puede empezar ni terminar con guión
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
-              Identificador único para la URL del servicio
+              💡 Identificador único para la URL del servicio
             </p>
           </div>
 
           {/* Descripción */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-medium">
-              Descripción *
+              Descripción <span className="text-red-500">*</span> ({description.length}/2000)
             </Label>
             <textarea
               id="description"
               value={description}
               onChange={e => setDescription(e.target.value)}
               className="w-full min-h-[100px] px-3 py-2.5 border rounded-md resize-y text-sm leading-relaxed focus:ring-2 focus:ring-primary"
-              placeholder="Describe el servicio..."
+              placeholder="Describe el servicio de manera clara y concisa..."
             />
+            {description && description.length < 20 && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <span>⚠</span> La descripción debe tener al menos 20 caracteres
+              </p>
+            )}
+            {description && description.length > 2000 && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> La descripción es demasiado larga (máx. 2000 caracteres)
+              </p>
+            )}
           </div>
 
           {/* CTA Text */}
@@ -297,7 +365,7 @@ export function ServiceEditSheet({
             <Button
               type="submit"
               onClick={handleSave}
-              disabled={updateService.isPending}
+              disabled={updateService.isPending || hasValidationErrors()}
               className="flex-1 h-11"
             >
               {updateService.isPending ? (
@@ -326,6 +394,14 @@ export function ServiceEditSheet({
               Cancelar
             </Button>
           </div>
+
+          {/* Mensaje de validación */}
+          {hasValidationErrors() && (
+            <div className="text-sm text-amber-600 flex items-center gap-2 -mt-4">
+              <span className="w-2 h-2 bg-amber-500 rounded-full" />
+              Por favor corrige los errores antes de guardar
+            </div>
+          )}
 
           {updateService.isSuccess && (
             <div className="text-sm text-green-600 flex items-center gap-2">
