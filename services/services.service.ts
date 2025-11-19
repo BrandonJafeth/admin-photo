@@ -1,5 +1,7 @@
 // services/services.service.ts
 import supabaseClient from '@/lib/supabaseClient'
+import { deleteFromCloudinary } from '@/lib/cloudinary'
+import { PortfolioImagesService } from './portfolio-images.service'
 
 export interface Service {
   id: string
@@ -128,6 +130,45 @@ export class ServicesService {
    * Actualiza un servicio
    */
   static async update(id: string, payload: UpdateServicePayload): Promise<Service> {
+    // Obtener el servicio actual antes de actualizar para eliminar imágenes anteriores
+    const { data: currentService, error: fetchError } = await supabaseClient
+      .from('services')
+      .select('image, gallery_images')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw new Error(`Error al obtener servicio: ${fetchError.message}`)
+
+    // Eliminar imagen anterior de Cloudinary si se está reemplazando
+    if (payload.image && currentService.image && payload.image !== currentService.image) {
+      try {
+        await deleteFromCloudinary(currentService.image)
+      } catch (error) {
+        console.error('Error al eliminar imagen anterior de Cloudinary:', error)
+        // Continuar con la actualización aunque falle la eliminación
+      }
+    }
+
+    // Eliminar imágenes de galería anteriores si se están reemplazando
+    if (payload.gallery_images && 
+        Array.isArray(payload.gallery_images) && 
+        currentService.gallery_images && 
+        Array.isArray(currentService.gallery_images)) {
+      const oldUrls = currentService.gallery_images.filter(
+        (url): url is string => typeof url === 'string' && !payload.gallery_images!.includes(url)
+      )
+      if (oldUrls.length > 0) {
+        try {
+          const { deleteManyFromCloudinary } = await import('@/lib/cloudinary')
+          await deleteManyFromCloudinary(oldUrls)
+        } catch (error) {
+          console.error('Error al eliminar imágenes de galería anteriores de Cloudinary:', error)
+          // Continuar con la actualización aunque falle la eliminación
+        }
+      }
+    }
+
+    // Actualizar el servicio
     const { data, error } = await supabaseClient
       .from('services')
       .update({
@@ -147,6 +188,38 @@ export class ServicesService {
    * Elimina un servicio
    */
   static async delete(id: string): Promise<void> {
+    // Obtener el servicio antes de eliminarlo para poder eliminar imágenes relacionadas
+    const { data: service, error: fetchError } = await supabaseClient
+      .from('services')
+      .select('id, image, gallery_images')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw new Error(`Error al obtener servicio: ${fetchError.message}`)
+
+    // Eliminar todas las imágenes del portafolio relacionadas al servicio
+    try {
+      await PortfolioImagesService.deleteByServiceId(id)
+    } catch (error) {
+      console.error('Error al eliminar imágenes del portafolio:', error)
+      // Continuar con la eliminación del servicio aunque falle la eliminación de imágenes
+    }
+
+    // Eliminar imagen principal del servicio de Cloudinary
+    if (service.image) {
+      await deleteFromCloudinary(service.image)
+    }
+
+    // Eliminar imágenes de galería del servicio de Cloudinary
+    if (service.gallery_images && Array.isArray(service.gallery_images)) {
+      const galleryUrls = service.gallery_images.filter((url): url is string => typeof url === 'string')
+      if (galleryUrls.length > 0) {
+        const { deleteManyFromCloudinary } = await import('@/lib/cloudinary')
+        await deleteManyFromCloudinary(galleryUrls)
+      }
+    }
+
+    // Eliminar el servicio de la base de datos
     const { error } = await supabaseClient
       .from('services')
       .delete()

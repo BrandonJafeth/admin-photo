@@ -1,5 +1,6 @@
 // services/aboutUs.service.ts
 import supabaseClient from '@/lib/supabaseClient'
+import { deleteFromCloudinary } from '@/lib/cloudinary'
 
 export interface AboutUs {
   id: string
@@ -79,6 +80,28 @@ export class AboutUsService {
    * Actualiza un About Us existente
    */
   static async update(id: string, payload: UpdateAboutUsPayload): Promise<AboutUs> {
+    // Obtener el registro actual antes de actualizar para eliminar imagen anterior
+    const { data: currentAboutUs, error: fetchError } = await supabaseClient
+      .from('about_us')
+      .select('image_url')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw new Error(`Error al obtener About Us: ${fetchError.message}`)
+
+    // Eliminar imagen anterior de Cloudinary si se está reemplazando
+    if (payload.image_url && 
+        currentAboutUs.image_url && 
+        payload.image_url !== currentAboutUs.image_url) {
+      try {
+        await deleteFromCloudinary(currentAboutUs.image_url)
+      } catch (error) {
+        console.error('Error al eliminar imagen anterior de Cloudinary:', error)
+        // Continuar con la actualización aunque falle la eliminación
+      }
+    }
+
+    // Actualizar el registro
     const { data, error } = await supabaseClient
       .from('about_us')
       .update({
@@ -113,6 +136,21 @@ export class AboutUsService {
    * Elimina un About Us
    */
   static async delete(id: string): Promise<void> {
+    // Obtener el registro antes de eliminarlo para poder eliminar imagen de Cloudinary
+    const { data: aboutUs, error: fetchError } = await supabaseClient
+      .from('about_us')
+      .select('image_url')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw new Error(`Error al obtener About Us: ${fetchError.message}`)
+
+    // Eliminar imagen de Cloudinary si existe
+    if (aboutUs?.image_url) {
+      await deleteFromCloudinary(aboutUs.image_url)
+    }
+
+    // Eliminar de la base de datos
     const { error } = await supabaseClient
       .from('about_us')
       .delete()

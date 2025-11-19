@@ -15,6 +15,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Upload, Loader2 } from 'lucide-react'
+import { ServiceGalleryManager } from './ServiceGalleryManager'
 
 interface ServiceEditSheetProps {
   service: Service
@@ -270,6 +271,17 @@ export function ServiceEditSheet({
                 placeholder="Descripción completa que aparecerá en la página del servicio..."
               />
             </div>
+          </div>
+
+          {/* Galería de Imágenes */}
+          <div className="space-y-4 border-t pt-6">
+            <div>
+              <h3 className="font-semibold text-base mb-1">Galería de Imágenes</h3>
+              <p className="text-xs text-muted-foreground">
+                Imágenes que se mostrarán en la página individual del servicio
+              </p>
+            </div>
+            <ServiceGalleryManager serviceId={service.id} disabled={updateService.isPending} />
           </div>
 
           {/* Metadata */}

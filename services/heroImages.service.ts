@@ -1,5 +1,6 @@
 // services/heroImages.service.ts
 import supabaseClient from '@/lib/supabaseClient'
+import { deleteFromCloudinary } from '@/lib/cloudinary'
 
 export interface HeroImage {
   id: string
@@ -93,6 +94,31 @@ export class HeroImagesService {
    * Actualiza una imagen del hero
    */
   static async update(id: string, payload: UpdateHeroImagePayload): Promise<HeroImage> {
+    // Obtener la imagen actual antes de actualizar para eliminar imagen anterior
+    const { data: currentImage, error: fetchError } = await supabaseClient
+      .from('hero_images')
+      .select('url, thumbnail_url')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw new Error(`Error al obtener imagen: ${fetchError.message}`)
+
+    // Eliminar imagen anterior de Cloudinary si se está reemplazando
+    if (payload.url && currentImage.url && payload.url !== currentImage.url) {
+      try {
+        const urlsToDelete = [currentImage.url]
+        if (currentImage.thumbnail_url) {
+          urlsToDelete.push(currentImage.thumbnail_url)
+        }
+        const { deleteManyFromCloudinary } = await import('@/lib/cloudinary')
+        await deleteManyFromCloudinary(urlsToDelete)
+      } catch (error) {
+        console.error('Error al eliminar imagen anterior de Cloudinary:', error)
+        // Continuar con la actualización aunque falle la eliminación
+      }
+    }
+
+    // Actualizar la imagen
     const { data, error } = await supabaseClient
       .from('hero_images')
       .update({
@@ -112,6 +138,43 @@ export class HeroImagesService {
    * Elimina una imagen del hero
    */
   static async delete(id: string): Promise<void> {
+    // Obtener la imagen antes de eliminarla para poder eliminar de Cloudinary
+    const { data: image, error: fetchError } = await supabaseClient
+      .from('hero_images')
+      .select('url, thumbnail_url')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) throw new Error(`Error al obtener imagen: ${fetchError.message}`)
+
+    // Eliminar de Cloudinary
+    if (image && image.url) {
+      try {
+        // Eliminar la imagen principal
+        const deleted = await deleteFromCloudinary(image.url)
+        
+        if (!deleted) {
+          console.warn(`No se pudo eliminar la imagen de Cloudinary: ${image.url}`)
+        }
+
+        // El thumbnail_url generalmente es una transformación de la misma imagen,
+        // así que no necesitamos eliminarlo por separado
+        // Solo eliminamos si es una URL diferente (no una transformación)
+        if (image.thumbnail_url && 
+            image.thumbnail_url !== image.url && 
+            !image.thumbnail_url.includes(image.url.split('/').pop() || '')) {
+          const thumbnailDeleted = await deleteFromCloudinary(image.thumbnail_url)
+          if (!thumbnailDeleted) {
+            console.warn(`No se pudo eliminar el thumbnail de Cloudinary: ${image.thumbnail_url}`)
+          }
+        }
+      } catch (error) {
+        console.error('Error al eliminar de Cloudinary:', error)
+        // Continuar con la eliminación de la BD aunque falle Cloudinary
+      }
+    }
+
+    // Eliminar de la base de datos
     const { error } = await supabaseClient
       .from('hero_images')
       .delete()
