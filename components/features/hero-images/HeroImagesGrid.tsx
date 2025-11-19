@@ -6,6 +6,7 @@ import { useDeleteHeroImage, useUpdateHeroImage, useUpdateHeroImagesOrder } from
 import { Button } from '@/components/ui/button'
 import { Trash2, Eye, EyeOff, GripVertical, Pencil } from 'lucide-react'
 import { HeroImageEditSheet } from './HeroImageEditSheet'
+import { toast } from 'sonner'
 
 
 interface HeroImagesGridProps {
@@ -68,14 +69,30 @@ export function HeroImagesGrid({ images }: HeroImagesGridProps) {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return
-
-    try {
-      await deleteImage.mutateAsync(id)
-    } catch (error) {
-      console.error('Error al eliminar:', error)
-    }
+  const handleDelete = async (id: string, title: string) => {
+    toast.warning('¿Eliminar imagen?', {
+      description: `Estás a punto de eliminar "${title || 'esta imagen'}". Esta acción no se puede deshacer.`,
+      action: {
+        label: 'Eliminar',
+        onClick: async () => {
+          try {
+            await deleteImage.mutateAsync(id)
+            toast.success('Imagen eliminada', {
+              description: 'La imagen se eliminó correctamente',
+            })
+          } catch (error) {
+            console.error('Error al eliminar:', error)
+            toast.error('Error al eliminar', {
+              description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
+            })
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancelar',
+        onClick: () => {},
+      },
+    })
   }
 
   return (
@@ -151,7 +168,7 @@ export function HeroImagesGrid({ images }: HeroImagesGridProps) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleDelete(image.id)}
+                  onClick={() => handleDelete(image.id, image.title || 'imagen')}
                   className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                 >
                   <Trash2 className="w-4 h-4" />

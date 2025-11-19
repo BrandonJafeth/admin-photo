@@ -1,7 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateService, useServices } from '@/hooks/useServices'
+import { createServiceSchema, type CreateServiceFormData } from '@/lib/validations/services'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -74,10 +77,18 @@ export function ServiceCreateSheet({
     }
   }
 
+  // Función para verificar si hay errores de validación
+  const hasValidationErrors = () => {
+    if (!title || title.length < 3 || title.length > 200) return true
+    if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.startsWith('-') || slug.endsWith('-')) return true
+    if (!description || description.length < 20 || description.length > 2000) return true
+    return false
+  }
+
   const handleCreate = async () => {
-    if (!title || !slug || !description) {
-      alert('Por favor completa los campos requeridos')
-      return
+    // Validar antes de intentar crear
+    if (hasValidationErrors()) {
+      return // No hacer nada, las validaciones visuales ya están mostrando el error
     }
 
     try {
@@ -89,7 +100,7 @@ export function ServiceCreateSheet({
         description,
         cta_text: ctaText,
         cta_link: ctaLink || undefined,
-        image: imageUrl || '', // Enviar string vacío en lugar de undefined
+        image: imageUrl || '',
         order: nextOrder,
         is_active: true,
       })
@@ -197,6 +208,21 @@ export function ServiceCreateSheet({
               onChange={e => setTitle(e.target.value)}
               placeholder="Ej: BODAS"
             />
+            {title && title.length < 3 && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <span>⚠</span> El título debe tener al menos 3 caracteres
+              </p>
+            )}
+            {title && title.length > 200 && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> El título es demasiado largo (máx. 200 caracteres)
+              </p>
+            )}
+            {!title && (
+              <p className="text-xs text-muted-foreground">
+                💡 El título es requerido
+              </p>
+            )}
           </div>
 
           {/* Slug */}
@@ -207,26 +233,54 @@ export function ServiceCreateSheet({
             <Input
               id="slug"
               value={slug}
-              onChange={e => setSlug(e.target.value)}
+              onChange={e => setSlug(e.target.value.toLowerCase())}
               placeholder="Ej: bodas"
+              className="font-mono text-sm"
             />
-            <p className="text-xs text-muted-foreground">
-              Identificador único para la URL del servicio
-            </p>
+            {slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> Solo letras minúsculas, números y guiones. Ej: fotografia-bodas
+              </p>
+            )}
+            {slug && (slug.startsWith('-') || slug.endsWith('-')) && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> No puede empezar ni terminar con guión
+              </p>
+            )}
+            {!slug && (
+              <p className="text-xs text-muted-foreground">
+                💡 El slug es requerido. Identificador único para la URL
+              </p>
+            )}
           </div>
 
           {/* Descripción */}
           <div className="space-y-2">
             <Label htmlFor="description" className="text-sm font-medium">
-              Descripción *
+              Descripción * ({description.length}/2000)
             </Label>
             <textarea
               id="description"
               value={description}
               onChange={e => setDescription(e.target.value)}
               className="w-full min-h-[100px] px-3 py-2.5 border rounded-md resize-y text-sm leading-relaxed focus:ring-2 focus:ring-primary"
-              placeholder="Describe el servicio..."
+              placeholder="Describe el servicio de manera clara y concisa..."
             />
+            {description && description.length < 20 && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <span>⚠</span> La descripción debe tener al menos 20 caracteres
+              </p>
+            )}
+            {description && description.length > 2000 && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> La descripción es demasiado larga (máx. 2000 caracteres)
+              </p>
+            )}
+            {!description && (
+              <p className="text-xs text-muted-foreground">
+                💡 La descripción es requerida (mínimo 20 caracteres)
+              </p>
+            )}
           </div>
 
           {/* CTA Text */}
@@ -259,8 +313,9 @@ export function ServiceCreateSheet({
           <div className="sticky bottom-0 bg-background border-t -mx-6 px-6 py-4 flex gap-3">
             <Button
               onClick={handleCreate}
-              disabled={createService.isPending || !title || !slug || !description}
+              disabled={createService.isPending || hasValidationErrors()}
               className="flex-1 h-11"
+              variant={'default'}
             >
               {createService.isPending ? (
                 <span className="flex items-center gap-2">
@@ -290,6 +345,14 @@ export function ServiceCreateSheet({
               Cancelar
             </Button>
           </div>
+
+          {/* Mensaje de validación */}
+          {hasValidationErrors() && (
+            <div className="text-sm text-amber-600 flex items-center gap-2 -mt-4">
+              <span className="w-2 h-2 bg-amber-500 rounded-full" />
+              Por favor completa todos los campos requeridos correctamente
+            </div>
+          )}
 
           {createService.isSuccess && (
             <div className="text-sm text-green-600 flex items-center gap-2">
