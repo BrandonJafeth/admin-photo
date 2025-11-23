@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { PortfolioImage } from '@/services/portfolio-images.service'
 import { useUpdatePortfolioImage } from '@/hooks/usePortfolioImages'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
@@ -15,6 +18,14 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Upload, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+
+const portfolioImageEditSchema = z.object({
+  title: z.string().max(200, 'El título es demasiado largo (máx. 200 caracteres)').optional().or(z.literal('')),
+  alt: z.string().max(200, 'El texto alternativo es demasiado largo (máx. 200 caracteres)').optional().or(z.literal('')),
+})
+
+type PortfolioImageEditFormData = z.infer<typeof portfolioImageEditSchema>
 
 interface PortfolioImageEditSheetProps {
   image: PortfolioImage
@@ -29,13 +40,25 @@ export function PortfolioImageEditSheet({
   onOpenChange,
   onClose,
 }: PortfolioImageEditSheetProps) {
-  const [title, setTitle] = useState(image.title || '')
-  const [alt, setAlt] = useState(image.alt || '')
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const updateImage = useUpdatePortfolioImage()
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<PortfolioImageEditFormData>({
+    resolver: zodResolver(portfolioImageEditSchema),
+    defaultValues: {
+      title: image.title || '',
+      alt: image.alt || '',
+    },
+  })
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -73,19 +96,29 @@ export function PortfolioImageEditSheet({
     }
   }
 
-  const handleSave = async () => {
+  const onSubmit = async (data: PortfolioImageEditFormData) => {
     try {
       await updateImage.mutateAsync({
         id: image.id,
         payload: {
-          title: title || undefined,
-          alt: alt || undefined,
+          title: data.title || undefined,
+          alt: data.alt || undefined,
         },
+      })
+      toast.success('¡Imagen actualizada!', {
+        description: 'Los cambios se guardaron correctamente',
       })
       onClose()
     } catch (error) {
       console.error('Error al guardar:', error)
+      toast.error('Error al guardar', {
+        description: error instanceof Error ? error.message : 'No se pudieron guardar los cambios',
+      })
     }
+  }
+
+  const hasValidationErrors = () => {
+    return Object.keys(errors).length > 0
   }
 
   return (
@@ -100,7 +133,7 @@ export function PortfolioImageEditSheet({
           </SheetHeader>
         </div>
 
-        <div className="px-6 py-6 space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-6 space-y-8">
           {/* Preview */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Vista Previa</Label>
@@ -158,27 +191,41 @@ export function PortfolioImageEditSheet({
           {/* Título */}
           <div className="space-y-2 border-t pt-6">
             <Label htmlFor="title" className="text-sm font-medium">
-              Título
+              Título ({watch('title')?.length || 0}/200)
             </Label>
             <Input
               id="title"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
+              {...register('title')}
               placeholder="Título de la imagen"
             />
+            {watch('title') && watch('title')!.length > 200 && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> El título es demasiado largo (máx. 200 caracteres)
+              </p>
+            )}
+            {errors.title && (
+              <p className="text-xs text-red-500">{errors.title.message}</p>
+            )}
           </div>
 
           {/* Alt Text */}
           <div className="space-y-2">
             <Label htmlFor="alt" className="text-sm font-medium">
-              Texto Alternativo (Alt)
+              Texto Alternativo (Alt) ({watch('alt')?.length || 0}/200)
             </Label>
             <Input
               id="alt"
-              value={alt}
-              onChange={e => setAlt(e.target.value)}
+              {...register('alt')}
               placeholder="Descripción para SEO"
             />
+            {watch('alt') && watch('alt')!.length > 200 && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span>⚠</span> El texto alternativo es demasiado largo (máx. 200 caracteres)
+              </p>
+            )}
+            {errors.alt && (
+              <p className="text-xs text-red-500">{errors.alt.message}</p>
+            )}
             <p className="text-xs text-muted-foreground">
               Texto que se muestra cuando la imagen no se puede cargar
             </p>
@@ -198,8 +245,7 @@ export function PortfolioImageEditSheet({
           <div className="sticky bottom-0 bg-background border-t -mx-6 px-6 py-4 flex gap-3">
             <Button
               type="submit"
-              onClick={handleSave}
-              disabled={updateImage.isPending}
+              disabled={updateImage.isPending || hasValidationErrors()}
               className="flex-1 h-11"
             >
               {updateImage.isPending ? (
@@ -216,15 +262,22 @@ export function PortfolioImageEditSheet({
               type="button"
               variant="outline"
               onClick={() => {
-                setTitle(image.title || '')
-                setAlt(image.alt || '')
+                reset()
                 onClose()
               }}
+              disabled={updateImage.isPending}
               className="h-11"
             >
               Cancelar
             </Button>
           </div>
+
+          {hasValidationErrors() && (
+            <div className="text-sm text-amber-600 flex items-center gap-2 -mt-4">
+              <span className="w-2 h-2 bg-amber-500 rounded-full" />
+              Por favor corrige los errores antes de guardar
+            </div>
+          )}
 
           {updateImage.isSuccess && (
             <div className="text-sm text-green-600 flex items-center gap-2">
@@ -239,7 +292,7 @@ export function PortfolioImageEditSheet({
               Error al guardar los cambios
             </div>
           )}
-        </div>
+        </form>
       </SheetContent>
     </Sheet>
   )

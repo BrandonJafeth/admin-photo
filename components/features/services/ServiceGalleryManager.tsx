@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { usePortfolioImagesByServiceId } from '@/hooks/usePortfolioImages'
 import { useCreateManyPortfolioImages, useDeletePortfolioImage, useUpdatePortfolioImagesOrder } from '@/hooks/usePortfolioImages'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
+import { toast } from 'sonner'
 
 interface ServiceGalleryManagerProps {
   serviceId: string
@@ -74,13 +75,29 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return
-
-    try {
-      await deleteImage.mutateAsync(id)
-    } catch (error) {
-      console.error('Error al eliminar imagen:', error)
-    }
+    toast.warning('¿Eliminar imagen?', {
+      description: 'Esta acción no se puede deshacer.',
+      action: {
+        label: 'Eliminar',
+        onClick: async () => {
+          try {
+            await deleteImage.mutateAsync(id)
+            toast.success('Imagen eliminada', {
+              description: 'La imagen se eliminó correctamente',
+            })
+          } catch (error) {
+            console.error('Error al eliminar imagen:', error)
+            toast.error('Error al eliminar', {
+              description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
+            })
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancelar',
+        onClick: () => {},
+      },
+    })
   }
 
   const handleDragStart = (id: string) => {
@@ -211,7 +228,7 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
                 draggedId === image.id ? 'opacity-50 ring-2 ring-primary' : ''
               } ${disabled ? 'cursor-not-allowed' : ''}`}
             >
-              <div className="absolute top-2 left-2 z-10 bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+              <div className="absolute top-2 left-2  bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                 <GripVertical className="w-3 h-3" />
                 <span>#{image.order + 1}</span>
               </div>

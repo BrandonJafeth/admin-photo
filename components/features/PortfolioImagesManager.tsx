@@ -3,73 +3,32 @@
 import { useState, useRef } from 'react'
 import { 
   usePortfolioImages, 
-  useCreatePortfolioImage, 
   useDeletePortfolioImage, 
   useUpdatePortfolioImagesOrder, 
   useUpdatePortfolioImage 
 } from '@/hooks/usePortfolioImages'
-import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, Trash2, Eye, EyeOff, GripVertical, Loader2, Pencil } from 'lucide-react'
+import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil } from 'lucide-react'
 import { PortfolioImageEditSheet } from './portfolio-images/PortfolioImageEditSheet'
+import { PortfolioImageUploadSheet } from './portfolio-images/PortfolioImageUploadSheet'
+import { toast } from 'sonner'
 
 export default function PortfolioImagesManager() {
   const { data: images = [], isLoading } = usePortfolioImages()
-  const createImage = useCreatePortfolioImage()
   const deleteImage = useDeletePortfolioImage()
   const updateImage = useUpdatePortfolioImage()
   const updateOrder = useUpdatePortfolioImagesOrder()
 
   const [draggedId, setDraggedId] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
+  const [isUploadSheetOpen, setIsUploadSheetOpen] = useState(false)
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const validationError = getImageValidationError(file)
-    if (validationError) {
-      setUploadError(validationError)
-      return
-    }
-
-    setUploadError(null)
-    setIsUploading(true)
-
-    try {
-      const result = await uploadToCloudinary(file, 'gallery')
-      const nextOrder = images.length > 0 ? Math.max(...images.map(img => img.order)) + 1 : 0
-
-      const fileName = file.name.replace(/\.[^/.]+$/, '')
-      await createImage.mutateAsync({
-        image_url: result.url,
-        thumbnail_url: result.url.replace('/upload/', '/upload/w_400,q_80/'),
-        title: fileName,
-        alt: fileName, // alt es requerido según la estructura de la tabla
-        service_id: null, // Puede ser null si no está vinculado a un servicio
-        order: nextOrder,
-        is_visible: true,
-      })
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-    } catch (error) {
-      setUploadError(
-        error instanceof Error ? error.message : 'Error al subir la imagen'
-      )
-    } finally {
-      setIsUploading(false)
-    }
-  }
+  const nextOrder = images.length > 0 ? Math.max(...images.map(img => img.order)) + 1 : 0
 
   const handleDragStart = (id: string) => {
     setDraggedId(id)
@@ -119,13 +78,29 @@ export default function PortfolioImagesManager() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta imagen?')) return
-
-    try {
-      await deleteImage.mutateAsync(id)
-    } catch (error) {
-      console.error('Error al eliminar:', error)
-    }
+    toast.warning('¿Eliminar imagen?', {
+      description: 'Esta acción no se puede deshacer.',
+      action: {
+        label: 'Eliminar',
+        onClick: async () => {
+          try {
+            await deleteImage.mutateAsync(id)
+            toast.success('Imagen eliminada', {
+              description: 'La imagen se eliminó correctamente',
+            })
+          } catch (error) {
+            console.error('Error al eliminar:', error)
+            toast.error('Error al eliminar', {
+              description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
+            })
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancelar',
+        onClick: () => {},
+      },
+    })
   }
 
   const editingImage = images.find(img => img.id === editingId)
@@ -151,42 +126,17 @@ export default function PortfolioImagesManager() {
           <div>
             <h3 className="font-semibold text-lg mb-2">Subir Nueva Imagen</h3>
             <p className="text-sm text-muted-foreground">
-              Formatos: JPEG, PNG, WebP, GIF • Máximo: 5MB
+              Completa los detalles y sube la imagen en un solo paso
             </p>
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            disabled={isUploading}
-            className="hidden"
-          />
-
           <Button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
+            onClick={() => setIsUploadSheetOpen(true)}
             className="w-full gap-2"
           >
-            {isUploading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Subiendo...
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4" />
-                Seleccionar Imagen
-              </>
-            )}
+            <Upload className="w-4 h-4" />
+            Nueva Imagen
           </Button>
-
-          {uploadError && (
-            <div className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
-              <span>⚠</span> {uploadError}
-            </div>
-          )}
         </div>
       </div>
 
@@ -228,7 +178,7 @@ export default function PortfolioImagesManager() {
                       variant="secondary"
                       onClick={() => {
                         setEditingId(image.id)
-                        setIsSheetOpen(true)
+                        setIsEditSheetOpen(true)
                       }}
                       className="gap-1"
                     >
@@ -304,14 +254,22 @@ export default function PortfolioImagesManager() {
         )}
       </div>
 
+      {/* Upload Sheet */}
+      <PortfolioImageUploadSheet
+        isOpen={isUploadSheetOpen}
+        onOpenChange={setIsUploadSheetOpen}
+        onClose={() => setIsUploadSheetOpen(false)}
+        nextOrder={nextOrder}
+      />
+
       {/* Edit Sheet */}
       {editingImage && (
         <PortfolioImageEditSheet
           image={editingImage}
-          isOpen={isSheetOpen}
-          onOpenChange={setIsSheetOpen}
+          isOpen={isEditSheetOpen}
+          onOpenChange={setIsEditSheetOpen}
           onClose={() => {
-            setIsSheetOpen(false)
+            setIsEditSheetOpen(false)
             setEditingId(null)
           }}
         />
