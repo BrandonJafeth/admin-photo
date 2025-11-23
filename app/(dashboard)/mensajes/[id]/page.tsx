@@ -1,12 +1,12 @@
-'use client'
-
 import MessageDetail from '@/components/features/MessageDetail'
-import { useParams } from 'next/navigation'
 
-export default function MensajeDetallePage() {
-  const params = useParams()
-  const paramId = params?.id
-  const id = Array.isArray(paramId) ? paramId[0] : paramId
+interface PageProps {
+  params: Promise<{
+    id: string
+  }>
+}
 
-  return <MessageDetail id={id} />
+export default async function MessageDetailPage({ params }: PageProps) {
+  const resolvedParams = await params
+  return <MessageDetail messageId={resolvedParams.id} />
 }
