@@ -6,12 +6,30 @@ type HighlightProps = {
   children: React.ReactNode
   containerClassName?: string
   className?: string
+  enabled?: boolean
+  hover?: boolean
+  controlledItems?: boolean
+  mode?: string
+  transition?: any
+  forceUpdateBounds?: boolean
   [key: string]: any
 }
 
-export function Highlight({ children, containerClassName, className, ...props }: HighlightProps) {
+export function Highlight({
+  children,
+  containerClassName,
+  className,
+  enabled,
+  hover,
+  controlledItems,
+  mode,
+  transition,
+  forceUpdateBounds,
+  ...props
+}: HighlightProps) {
+  // Filter out props that shouldn't be passed to DOM
   return (
-    <div className={containerClassName} {...props}>{children}</div>
+    <div className={containerClassName}>{children}</div>
   )
 }
 
