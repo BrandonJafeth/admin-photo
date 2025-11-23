@@ -2,12 +2,12 @@
 
 import React from 'react'
 
-export function TooltipProvider({ children }: { children: React.ReactNode }) {
-  return <div>{children}</div>
+export function TooltipProvider({ children, ...props }: { children: React.ReactNode } & any) {
+  return <div {...props}>{children}</div>
 }
 
-export function Tooltip({ children }: { children: React.ReactNode }) {
-  return <div>{children}</div>
+export function Tooltip({ children, ...props }: { children: React.ReactNode } & any) {
+  return <div {...props}>{children}</div>
 }
 
 export function TooltipTrigger({ children, asChild }: any) {

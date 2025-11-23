@@ -103,14 +103,14 @@ export class PortfolioImagesService {
     let nextOrder = 0
     if (payload.service_id) {
       const existingImages = await this.getByServiceId(payload.service_id)
-      nextOrder = existingImages.length > 0 
-        ? Math.max(...existingImages.map(img => img.order)) + 1 
+      nextOrder = existingImages.length > 0
+        ? Math.max(...existingImages.map(img => img.order)) + 1
         : 0
     } else {
       // Si no tiene service_id, obtener el máximo order de todas las imágenes
       const allImages = await this.getAll()
-      nextOrder = allImages.length > 0 
-        ? Math.max(...allImages.map(img => img.order)) + 1 
+      nextOrder = allImages.length > 0
+        ? Math.max(...allImages.map(img => img.order)) + 1
         : 0
     }
 
@@ -138,11 +138,16 @@ export class PortfolioImagesService {
     if (payloads.length === 0) return []
 
     const serviceId = payloads[0].service_id
-    
+
     // Obtener el siguiente order disponible
-    const existingImages = await this.getByServiceId(serviceId)
-    let nextOrder = existingImages.length > 0 
-      ? Math.max(...existingImages.map(img => img.order)) + 1 
+    let existingImages: PortfolioImage[] = []
+    if (serviceId) {
+      existingImages = await this.getByServiceId(serviceId)
+    } else {
+      existingImages = await this.getAll()
+    }
+    let nextOrder = existingImages.length > 0
+      ? Math.max(...existingImages.map(img => img.order)) + 1
       : 0
 
     const imagesWithOrder = payloads.map((payload, index) => ({
@@ -177,9 +182,9 @@ export class PortfolioImagesService {
     if (fetchError) throw new Error(`Error al obtener imagen: ${fetchError.message}`)
 
     // Eliminar imagen anterior de Cloudinary si se está reemplazando
-    if (payload.image_url && 
-        currentImage.image_url && 
-        payload.image_url !== currentImage.image_url) {
+    if (payload.image_url &&
+      currentImage.image_url &&
+      payload.image_url !== currentImage.image_url) {
       try {
         const urlsToDelete = [currentImage.image_url]
         if (currentImage.thumbnail_url) {

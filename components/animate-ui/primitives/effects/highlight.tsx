@@ -6,12 +6,12 @@ type HighlightProps = {
   children: React.ReactNode
   containerClassName?: string
   className?: string
-  // other props (enabled, hover, controlledItems, etc.) are intentionally ignored
+  [key: string]: any
 }
 
-export function Highlight({ children, containerClassName, className }: HighlightProps) {
+export function Highlight({ children, containerClassName, className, ...props }: HighlightProps) {
   return (
-    <div className={containerClassName}>{children}</div>
+    <div className={containerClassName} {...props}>{children}</div>
   )
 }
 
