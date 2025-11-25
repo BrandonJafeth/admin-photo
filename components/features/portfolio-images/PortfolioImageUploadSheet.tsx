@@ -29,8 +29,8 @@ import { useServices } from '@/hooks/useServices'
 import { toast } from 'sonner'
 
 const portfolioImageSchema = z.object({
-  title: z.string().min(1, 'El título es requerido').max(200, 'El título es demasiado largo'),
-  alt: z.string().min(1, 'El texto alternativo es requerido').max(200, 'El alt es demasiado largo'),
+  title: z.union([z.string().max(200, 'El título es demasiado largo'), z.literal('')]).optional(),
+  alt: z.union([z.string().max(200, 'El texto alternativo es demasiado largo'), z.literal('')]).optional(),
   category_id: z.string().min(1, 'Debes seleccionar una categoría'),
   service_id: z.string().optional(),
 })
@@ -107,11 +107,6 @@ export function PortfolioImageUploadSheet({
       setPreviewUrl(reader.result as string)
     }
     reader.readAsDataURL(file)
-
-    // Auto-llenar título con nombre del archivo
-    const fileName = file.name.replace(/\.[^/.]+$/, '')
-    setValue('title', fileName)
-    setValue('alt', fileName)
   }
 
   const handleRemoveFile = () => {
@@ -137,8 +132,8 @@ export function PortfolioImageUploadSheet({
       await createImage.mutateAsync({
         image_url: result.url,
         thumbnail_url: result.url.replace('/upload/', '/upload/w_400,q_80/'),
-        title: data.title,
-        alt: data.alt,
+        title: data.title || undefined,
+        alt: data.alt || undefined,
         category_id: data.category_id,
         service_id: data.service_id === 'none' ? null : data.service_id || null,
         order: nextOrder,
@@ -168,8 +163,6 @@ export function PortfolioImageUploadSheet({
   const hasValidationErrors = () => {
     return (
       !selectedFile ||
-      !watch('title') ||
-      !watch('alt') ||
       !watch('category_id') ||
       Object.keys(errors).length > 0
     )
@@ -193,7 +186,7 @@ export function PortfolioImageUploadSheet({
             <Label className="text-sm font-semibold">
               Imagen <span className="text-red-500">*</span>
             </Label>
-            
+
             {!selectedFile ? (
               <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                 <input
@@ -238,7 +231,7 @@ export function PortfolioImageUploadSheet({
           {/* Título */}
           <div className="space-y-2">
             <Label htmlFor="title" className="text-sm font-medium">
-              Título <span className="text-red-500">*</span> ({watch('title')?.length || 0}/200)
+              Título ({watch('title')?.length || 0}/200)
             </Label>
             <Input
               id="title"
@@ -246,11 +239,11 @@ export function PortfolioImageUploadSheet({
               placeholder="Ej: Boda de María y Juan"
             />
             {!watch('title') && (
-              <p className="text-xs text-muted-foreground">💡 Ingresa un título descriptivo para la imagen</p>
+              <p className="text-xs text-muted-foreground">Ingresa un título descriptivo para la imagen (opcional)</p>
             )}
             {watch('title') && watch('title').length > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> El título es demasiado largo (máx. 200 caracteres)
+                El título es demasiado largo (máximo 200 caracteres)
               </p>
             )}
             {errors.title && (
@@ -261,7 +254,7 @@ export function PortfolioImageUploadSheet({
           {/* Alt Text */}
           <div className="space-y-2">
             <Label htmlFor="alt" className="text-sm font-medium">
-              Texto Alternativo (Alt) <span className="text-red-500">*</span> ({watch('alt')?.length || 0}/200)
+              Texto Alternativo (Alt) ({watch('alt')?.length || 0}/200)
             </Label>
             <Input
               id="alt"
@@ -269,11 +262,11 @@ export function PortfolioImageUploadSheet({
               placeholder="Descripción para SEO"
             />
             {!watch('alt') && (
-              <p className="text-xs text-muted-foreground">💡 Describe la imagen para accesibilidad y SEO</p>
+              <p className="text-xs text-muted-foreground">Describe la imagen para accesibilidad y SEO (opcional)</p>
             )}
             {watch('alt') && watch('alt').length > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> El texto alternativo es demasiado largo (máx. 200 caracteres)
+                El texto alternativo es demasiado largo (máximo 200 caracteres)
               </p>
             )}
             {errors.alt && (
@@ -306,13 +299,13 @@ export function PortfolioImageUploadSheet({
               </SelectContent>
             </Select>
             {!categoryId && (
-              <p className="text-xs text-muted-foreground">💡 Selecciona la categoría para organizar la imagen</p>
+              <p className="text-xs text-muted-foreground">Selecciona la categoría para organizar la imagen</p>
             )}
             {errors.category_id && (
               <p className="text-xs text-red-500">{errors.category_id.message}</p>
             )}
             {categoryId && !errors.category_id && (
-              <p className="text-xs text-green-600">✓ Categoría seleccionada</p>
+              <p className="text-xs text-green-600">Categoría seleccionada</p>
             )}
           </div>
 

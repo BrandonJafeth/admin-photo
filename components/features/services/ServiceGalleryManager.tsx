@@ -95,7 +95,7 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
       },
       cancel: {
         label: 'Cancelar',
-        onClick: () => {},
+        onClick: () => { },
       },
     })
   }
@@ -204,7 +204,7 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
 
           {uploadError && (
             <div className="text-xs text-red-500 bg-red-50 dark:bg-red-950/20 p-2 rounded">
-              ⚠ {uploadError}
+              {uploadError}
             </div>
           )}
 
@@ -224,9 +224,8 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
               onDragStart={() => handleDragStart(image.id)}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(image.id)}
-              className={`relative group aspect-square overflow-hidden cursor-move hover:ring-2 hover:ring-primary transition-all ${
-                draggedId === image.id ? 'opacity-50 ring-2 ring-primary' : ''
-              } ${disabled ? 'cursor-not-allowed' : ''}`}
+              className={`relative group aspect-square overflow-hidden cursor-move hover:ring-2 hover:ring-primary transition-all ${draggedId === image.id ? 'opacity-50 ring-2 ring-primary' : ''
+                } ${disabled ? 'cursor-not-allowed' : ''}`}
             >
               <div className="absolute top-2 left-2  bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                 <GripVertical className="w-3 h-3" />
@@ -238,12 +237,6 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
                 alt={image.alt || image.title || 'Imagen del servicio'}
                 className="w-full h-full object-cover"
               />
-
-              {image.is_featured && (
-                <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
-                  ⭐
-                </div>
-              )}
 
               {!image.is_visible && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -280,7 +273,7 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
       {images.length > 0 && (
         <div className="text-xs text-muted-foreground flex items-center gap-4">
           <span>
-            💡 Arrastra las imágenes para reordenarlas
+            Arrastra las imágenes para reordenarlas
           </span>
         </div>
       )}

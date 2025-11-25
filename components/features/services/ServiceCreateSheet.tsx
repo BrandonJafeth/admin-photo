@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateService, useServices } from '@/hooks/useServices'
 import { createServiceSchema, type CreateServiceFormData } from '@/lib/validations/services'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -33,12 +34,11 @@ export function ServiceCreateSheet({
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
-  const [ctaText, setCtaText] = useState('SOLICITAR →')
+  const [ctaText, setCtaText] = useState('Ver más')
   const [ctaLink, setCtaLink] = useState('')
-  const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,33 +48,14 @@ export function ServiceCreateSheet({
     const validationError = getImageValidationError(file)
     if (validationError) {
       setUploadError(validationError)
+      setSelectedFile(null)
+      setPreviewUrl(null)
       return
     }
 
     setUploadError(null)
+    setSelectedFile(file)
     setPreviewUrl(URL.createObjectURL(file))
-  }
-
-  const handleUploadImage = async () => {
-    if (!fileInputRef.current?.files?.[0]) return
-
-    const file = fileInputRef.current.files[0]
-    setIsUploading(true)
-
-    try {
-      const result = await uploadToCloudinary(file, 'services')
-      setImageUrl(result.url)
-      setPreviewUrl(null)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-    } catch (error) {
-      setUploadError(
-        error instanceof Error ? error.message : 'Error al subir la imagen'
-      )
-    } finally {
-      setIsUploading(false)
-    }
   }
 
   // Función para verificar si hay errores de validación
@@ -82,6 +63,7 @@ export function ServiceCreateSheet({
     if (!title || title.length < 3 || title.length > 200) return true
     if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.startsWith('-') || slug.endsWith('-')) return true
     if (!description || description.length < 20 || description.length > 2000) return true
+    if (!selectedFile) return true // Imagen requerida
     return false
   }
 
@@ -91,31 +73,66 @@ export function ServiceCreateSheet({
       return // No hacer nada, las validaciones visuales ya están mostrando el error
     }
 
+    // Mostrar toast de loading
+    const loadingToast = toast.loading('Creando servicio...', {
+      description: selectedFile ? 'Subiendo imagen y guardando...' : 'Guardando...',
+    })
+
     try {
       const nextOrder = services.length > 0 ? Math.max(...services.map(s => s.order)) + 1 : 0
+
+      let uploadedImageUrl = ''
+
+      // Subir la imagen solo si hay un archivo seleccionado
+      if (selectedFile) {
+        try {
+          const result = await uploadToCloudinary(selectedFile, 'services')
+          uploadedImageUrl = result.url
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Error al subir la imagen'
+          setUploadError(errorMessage)
+          toast.dismiss(loadingToast)
+          toast.error('Error al subir imagen', {
+            description: errorMessage,
+          })
+          return // No crear el servicio si falla la subida de imagen
+        }
+      }
 
       await createService.mutateAsync({
         title,
         slug,
         description,
         cta_text: ctaText,
-        cta_link: ctaLink || undefined,
-        image: imageUrl || '',
+        cta_link: undefined,
+        image: uploadedImageUrl,
         order: nextOrder,
         is_active: true,
+      })
+
+      toast.dismiss(loadingToast)
+      toast.success('¡Servicio creado!', {
+        description: `El servicio "${title}" se creó correctamente`,
       })
 
       // Reset
       setTitle('')
       setSlug('')
       setDescription('')
-      setCtaText('SOLICITAR →')
-      setCtaLink('')
-      setImageUrl(null)
+      setCtaText('Ver más ')
+      setSelectedFile(null)
       setPreviewUrl(null)
+      setUploadError(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
       onOpenChange(false)
     } catch (error) {
       console.error('Error al crear servicio:', error)
+      toast.dismiss(loadingToast)
+      toast.error('Error al crear servicio', {
+        description: 'No se pudo crear el servicio. Intenta nuevamente.',
+      })
     }
   }
 
@@ -133,12 +150,12 @@ export function ServiceCreateSheet({
 
         <div className="px-6 py-6 space-y-8">
           {/* Preview */}
-          {previewUrl || imageUrl ? (
+          {previewUrl ? (
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Vista Previa</Label>
               <div className="relative aspect-video overflow-hidden rounded-lg border-2 bg-slate-100 dark:bg-slate-800">
                 <img
-                  src={previewUrl || imageUrl || ''}
+                  src={previewUrl}
                   alt="Preview"
                   className="w-full h-full object-cover"
                 />
@@ -148,54 +165,38 @@ export function ServiceCreateSheet({
 
           {/* Upload Imagen */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Imagen del Servicio</Label>
+            <Label className="text-sm font-medium">Imagen del Servicio *</Label>
             <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleImageSelect}
-              disabled={isUploading}
               className="hidden"
             />
             <Button
               type="button"
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading || !!imageUrl}
+              disabled={createService.isPending}
               className="w-full gap-2 h-11"
             >
-              {isUploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Subiendo...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4" />
-                  Seleccionar Imagen
-                </>
-              )}
+              <Upload className="w-4 h-4" />
+              {selectedFile ? 'Cambiar Imagen' : 'Seleccionar Imagen'}
             </Button>
             {uploadError && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> {uploadError}
+                {uploadError}
+              </p>
+            )}
+            {!selectedFile && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                La imagen es requerida
               </p>
             )}
             <p className="text-xs text-muted-foreground">
               Formatos: JPEG, PNG, WebP, GIF • Máximo: 5MB
             </p>
           </div>
-
-          {/* Upload Button (si hay preview) */}
-          {previewUrl && !imageUrl && (
-            <Button
-              onClick={handleUploadImage}
-              disabled={isUploading}
-              className="w-full"
-            >
-              {isUploading ? 'Subiendo...' : 'Subir Imagen'}
-            </Button>
-          )}
 
           {/* Título */}
           <div className="space-y-2 border-t pt-6">
@@ -210,17 +211,17 @@ export function ServiceCreateSheet({
             />
             {title && title.length < 3 && (
               <p className="text-xs text-amber-600 flex items-center gap-1">
-                <span>⚠</span> El título debe tener al menos 3 caracteres
+                El título debe tener al menos 3 caracteres
               </p>
             )}
             {title && title.length > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> El título es demasiado largo (máx. 200 caracteres)
+                El título es demasiado largo (máximo 200 caracteres)
               </p>
             )}
             {!title && (
               <p className="text-xs text-muted-foreground">
-                💡 El título es requerido
+                El título es requerido
               </p>
             )}
           </div>
@@ -239,17 +240,17 @@ export function ServiceCreateSheet({
             />
             {slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> Solo letras minúsculas, números y guiones. Ej: fotografia-bodas
+                Solo letras minúsculas, números y guiones (ejemplo: fotografia-bodas)
               </p>
             )}
             {slug && (slug.startsWith('-') || slug.endsWith('-')) && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> No puede empezar ni terminar con guión
+                No puede empezar ni terminar con guión
               </p>
             )}
             {!slug && (
               <p className="text-xs text-muted-foreground">
-                💡 El slug es requerido. Identificador único para la URL
+                El slug es requerido (identificador único para la URL)
               </p>
             )}
           </div>
@@ -268,17 +269,17 @@ export function ServiceCreateSheet({
             />
             {description && description.length < 20 && (
               <p className="text-xs text-amber-600 flex items-center gap-1">
-                <span>⚠</span> La descripción debe tener al menos 20 caracteres
+                La descripción debe tener al menos 20 caracteres
               </p>
             )}
             {description && description.length > 2000 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> La descripción es demasiado larga (máx. 2000 caracteres)
+                La descripción es demasiado larga (máximo 2000 caracteres)
               </p>
             )}
             {!description && (
               <p className="text-xs text-muted-foreground">
-                💡 La descripción es requerida (mínimo 20 caracteres)
+                La descripción es requerida (mínimo 20 caracteres)
               </p>
             )}
           </div>
@@ -292,20 +293,7 @@ export function ServiceCreateSheet({
               id="ctaText"
               value={ctaText}
               onChange={e => setCtaText(e.target.value)}
-              placeholder="Ej: SOLICITAR →"
-            />
-          </div>
-
-          {/* CTA Link */}
-          <div className="space-y-2">
-            <Label htmlFor="ctaLink" className="text-sm font-medium">
-              Enlace del Botón CTA
-            </Label>
-            <Input
-              id="ctaLink"
-              value={ctaLink}
-              onChange={e => setCtaLink(e.target.value)}
-              placeholder="Ej: /contacto"
+              placeholder="Ej: Ver más "
             />
           </div>
 
@@ -334,10 +322,13 @@ export function ServiceCreateSheet({
                 setTitle('')
                 setSlug('')
                 setDescription('')
-                setCtaText('SOLICITAR →')
-                setCtaLink('')
-                setImageUrl(null)
+                setCtaText('Ver más')
+                setSelectedFile(null)
                 setPreviewUrl(null)
+                setUploadError(null)
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = ''
+                }
                 onOpenChange(false)
               }}
               className="h-11"

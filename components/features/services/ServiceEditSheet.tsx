@@ -35,9 +35,6 @@ export function ServiceEditSheet({
   const [slug, setSlug] = useState(service.slug)
   const [description, setDescription] = useState(service.description)
   const [ctaText, setCtaText] = useState(service.cta_text)
-  const [ctaLink, setCtaLink] = useState(service.cta_link || '')
-  const [pageTitle, setPageTitle] = useState(service.page_title || '')
-  const [pageDescription, setPageDescription] = useState(service.page_description || '')
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -110,9 +107,6 @@ export function ServiceEditSheet({
           slug: slug || undefined,
           description: description || undefined,
           cta_text: ctaText || undefined,
-          cta_link: ctaLink || undefined,
-          page_title: pageTitle || undefined,
-          page_description: pageDescription || undefined,
         },
       })
       toast.success('¡Servicio actualizado!', {
@@ -200,7 +194,7 @@ export function ServiceEditSheet({
             </div>
             {uploadError && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> {uploadError}
+                {uploadError}
               </p>
             )}
             <p className="text-xs text-muted-foreground">
@@ -221,12 +215,12 @@ export function ServiceEditSheet({
             />
             {title && title.length < 3 && (
               <p className="text-xs text-amber-600 flex items-center gap-1">
-                <span>⚠</span> El título debe tener al menos 3 caracteres
+                El título debe tener al menos 3 caracteres
               </p>
             )}
             {title && title.length > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> El título es demasiado largo (máx. 200 caracteres)
+                El título es demasiado largo (máximo 200 caracteres)
               </p>
             )}
           </div>
@@ -245,16 +239,16 @@ export function ServiceEditSheet({
             />
             {slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> Solo letras minúsculas, números y guiones. Ej: fotografia-bodas
+                Solo letras minúsculas, números y guiones (ejemplo: fotografia-bodas)
               </p>
             )}
             {slug && (slug.startsWith('-') || slug.endsWith('-')) && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> No puede empezar ni terminar con guión
+                No puede empezar ni terminar con guión
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              💡 Identificador único para la URL del servicio
+              Identificador único para la URL del servicio
             </p>
           </div>
 
@@ -272,12 +266,12 @@ export function ServiceEditSheet({
             />
             {description && description.length < 20 && (
               <p className="text-xs text-amber-600 flex items-center gap-1">
-                <span>⚠</span> La descripción debe tener al menos 20 caracteres
+                La descripción debe tener al menos 20 caracteres
               </p>
             )}
             {description && description.length > 2000 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> La descripción es demasiado larga (máx. 2000 caracteres)
+                La descripción es demasiado larga (máximo 2000 caracteres)
               </p>
             )}
           </div>
@@ -295,52 +289,6 @@ export function ServiceEditSheet({
             />
           </div>
 
-          {/* CTA Link */}
-          <div className="space-y-2">
-            <Label htmlFor="ctaLink" className="text-sm font-medium">
-              Enlace del Botón CTA
-            </Label>
-            <Input
-              id="ctaLink"
-              value={ctaLink}
-              onChange={e => setCtaLink(e.target.value)}
-              placeholder="Ej: /contacto"
-            />
-          </div>
-
-          {/* Página del Servicio */}
-          <div className="space-y-4 border-t pt-6">
-            <h3 className="font-semibold text-base">Página del Servicio</h3>
-            <p className="text-xs text-muted-foreground">
-              Contenido que aparecerá en la página individual del servicio
-            </p>
-
-            <div className="space-y-2">
-              <Label htmlFor="pageTitle" className="text-sm font-medium">
-                Título de la Página
-              </Label>
-              <Input
-                id="pageTitle"
-                value={pageTitle}
-                onChange={e => setPageTitle(e.target.value)}
-                placeholder="Ej: Fotografía de Bodas Profesional"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="pageDescription" className="text-sm font-medium">
-                Descripción Detallada
-              </Label>
-              <textarea
-                id="pageDescription"
-                value={pageDescription}
-                onChange={e => setPageDescription(e.target.value)}
-                className="w-full min-h-[120px] px-3 py-2.5 border rounded-md resize-y text-sm leading-relaxed focus:ring-2 focus:ring-primary"
-                placeholder="Descripción completa que aparecerá en la página del servicio..."
-              />
-            </div>
-          </div>
-
           {/* Galería de Imágenes */}
           <div className="space-y-4 border-t pt-6">
             <div>
@@ -354,10 +302,9 @@ export function ServiceEditSheet({
 
           {/* Metadata */}
           <div className="space-y-2 border-t pt-6 text-xs text-muted-foreground">
-            <p>🆔 ID: {service.id}</p>
-            <p>📅 Creado: {new Date(service.created_at).toLocaleDateString()}</p>
-            <p>🔄 Actualizado: {new Date(service.updated_at).toLocaleDateString()}</p>
-            <p>👁️ Estado: {service.is_active ? 'Visible' : 'Oculto'}</p>
+            <p>Creado: {new Date(service.created_at).toLocaleDateString()}</p>
+            <p>Actualizado: {new Date(service.updated_at).toLocaleDateString()}</p>
+            <p>Estado: {service.is_active ? 'Visible' : 'Oculto'}</p>
           </div>
 
           {/* Actions */}
@@ -386,7 +333,6 @@ export function ServiceEditSheet({
                 setSlug(service.slug)
                 setDescription(service.description)
                 setCtaText(service.cta_text)
-                setCtaLink(service.cta_link || '')
                 onClose()
               }}
               className="h-11"
