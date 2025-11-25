@@ -302,7 +302,6 @@ export function ServiceEditSheet({
 
           {/* Metadata */}
           <div className="space-y-2 border-t pt-6 text-xs text-muted-foreground">
-            <p>ID: {service.id}</p>
             <p>Creado: {new Date(service.created_at).toLocaleDateString()}</p>
             <p>Actualizado: {new Date(service.updated_at).toLocaleDateString()}</p>
             <p>Estado: {service.is_active ? 'Visible' : 'Oculto'}</p>

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { PortfolioImage } from '@/services/portfolio-images.service'
 import { useUpdatePortfolioImage } from '@/hooks/usePortfolioImages'
+import { useServices } from '@/hooks/useServices'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,6 +46,7 @@ export function PortfolioImageEditSheet({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const updateImage = useUpdatePortfolioImage()
+  const { data: services = [] } = useServices()
 
   const {
     register,
@@ -180,7 +182,7 @@ export function PortfolioImageEditSheet({
             </div>
             {uploadError && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> {uploadError}
+                {uploadError}
               </p>
             )}
             <p className="text-xs text-muted-foreground">
@@ -200,7 +202,7 @@ export function PortfolioImageEditSheet({
             />
             {watch('title') && watch('title')!.length > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> El título es demasiado largo (máx. 200 caracteres)
+                El título es demasiado largo (máximo 200 caracteres)
               </p>
             )}
             {errors.title && (
@@ -220,7 +222,7 @@ export function PortfolioImageEditSheet({
             />
             {watch('alt') && watch('alt')!.length > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> El texto alternativo es demasiado largo (máx. 200 caracteres)
+                El texto alternativo es demasiado largo (máximo 200 caracteres)
               </p>
             )}
             {errors.alt && (
@@ -233,12 +235,16 @@ export function PortfolioImageEditSheet({
 
           {/* Metadata */}
           <div className="space-y-2 border-t pt-6 text-xs text-muted-foreground">
-            <p>🆔 ID: {image.id}</p>
-            <p>📅 Creado: {new Date(image.created_at).toLocaleDateString()}</p>
-            <p>🔄 Actualizado: {new Date(image.updated_at).toLocaleDateString()}</p>
-            <p>👁️ Estado: {image.is_visible ? 'Visible' : 'Oculto'}</p>
-            {image.is_featured && <p>⭐ Imagen destacada</p>}
-            {image.service_id && <p>🔗 Vinculada a servicio: {image.service_id}</p>}
+            <p>ID: {image.id}</p>
+            <p>Creado: {new Date(image.created_at).toLocaleDateString()}</p>
+            <p>Actualizado: {new Date(image.updated_at).toLocaleDateString()}</p>
+            <p>Estado: {image.is_visible ? 'Visible' : 'Oculto'}</p>
+            {image.is_featured && <p>Imagen destacada</p>}
+            {image.service_id && (
+              <p>
+                Vinculada a servicio: {services.find(s => s.id === image.service_id)?.title || image.service_id}
+              </p>
+            )}
           </div>
 
           {/* Actions */}
