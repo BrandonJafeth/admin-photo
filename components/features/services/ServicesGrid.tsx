@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Service } from '@/services/services.service'
 import { useDeleteService, useUpdateService, useUpdateServicesOrder } from '@/hooks/useServices'
 import { Button } from '@/components/ui/button'
-import { Trash2, Eye, EyeOff, GripVertical, Pencil, Copy } from 'lucide-react'
+import { Trash2, Eye, EyeOff, GripVertical, Pencil } from 'lucide-react'
 import { ServiceEditSheet } from './ServiceEditSheet'
 import { toast } from 'sonner'
 
@@ -51,8 +51,14 @@ export function ServicesGrid({ services }: ServicesGridProps) {
 
     try {
       await updateOrder.mutateAsync(updates)
+      toast.success('Orden actualizado', {
+        description: 'El orden de los servicios se actualizó correctamente',
+      })
     } catch (error) {
       console.error('Error al actualizar orden:', error)
+      toast.error('Error al reordenar', {
+        description: 'No se pudo actualizar el orden. Intenta nuevamente.',
+      })
     }
 
     setDraggedId(null)
@@ -64,8 +70,14 @@ export function ServicesGrid({ services }: ServicesGridProps) {
         id,
         payload: { is_active: !isVisible },
       })
+      toast.success(isVisible ? 'Servicio ocultado' : 'Servicio visible', {
+        description: `El servicio ahora está ${isVisible ? 'oculto' : 'visible'}`,
+      })
     } catch (error) {
       console.error('Error al actualizar visibilidad:', error)
+      toast.error('Error al cambiar visibilidad', {
+        description: 'No se pudo actualizar la visibilidad. Intenta nuevamente.',
+      })
     }
   }
 
@@ -75,13 +87,20 @@ export function ServicesGrid({ services }: ServicesGridProps) {
       action: {
         label: 'Eliminar',
         onClick: async () => {
+          // Mostrar toast de loading
+          const loadingToast = toast.loading('Eliminando servicio...', {
+            description: 'Por favor espera',
+          })
+
           try {
             await deleteService.mutateAsync(id)
+            toast.dismiss(loadingToast)
             toast.success('Servicio eliminado', {
               description: 'El servicio se eliminó correctamente',
             })
           } catch (error) {
             console.error('Error al eliminar:', error)
+            toast.dismiss(loadingToast)
             toast.error('Error al eliminar', {
               description: 'No se pudo eliminar el servicio. Intenta nuevamente.',
             })
@@ -90,34 +109,9 @@ export function ServicesGrid({ services }: ServicesGridProps) {
       },
       cancel: {
         label: 'Cancelar',
-        onClick: () => {},
+        onClick: () => { },
       },
     })
-  }
-
-  const handleDuplicate = async (service: Service) => {
-    const newSlug = `${service.slug}-copia-${Date.now()}`
-    try {
-      // Crear copia del servicio
-      const newService = {
-        title: `${service.title} (Copia)`,
-        slug: newSlug,
-        description: service.description,
-        detailed_description: service.detailed_description,
-        image: service.image,
-        gallery_images: service.gallery_images,
-        cta_text: service.cta_text,
-        cta_link: service.cta_link,
-        features: service.features,
-        pricing: service.pricing,
-        is_active: false,
-        order: services.length,
-      }
-      // Aquí iría la llamada a crear, pero por ahora solo mostramos el intent
-      console.log('Duplicar servicio:', newService)
-    } catch (error) {
-      console.error('Error al duplicar:', error)
-    }
   }
 
   return (
@@ -130,11 +124,10 @@ export function ServicesGrid({ services }: ServicesGridProps) {
             onDragStart={() => handleDragStart(service.id)}
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(service.id)}
-            className={`relative group rounded-lg overflow-hidden border-2 transition-all cursor-move ${
-              draggedId === service.id
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 opacity-50'
-                : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
-            }`}
+            className={`relative group rounded-lg overflow-hidden border-2 transition-all cursor-move ${draggedId === service.id
+              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 opacity-50'
+              : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
+              }`}
           >
             {/* Imagen */}
             <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -205,15 +198,6 @@ export function ServicesGrid({ services }: ServicesGridProps) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleDuplicate(service)}
-                  className="flex-1"
-                  title="Duplicar"
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
                   onClick={() => handleDelete(service.id, service.title)}
                   className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                   title="Eliminar"
@@ -224,8 +208,8 @@ export function ServicesGrid({ services }: ServicesGridProps) {
 
               {/* Metadata */}
               <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-                <p>🔗 CTA: {service.cta_text}</p>
-                <p>📅 {new Date(service.updated_at).toLocaleDateString()}</p>
+                <p>CTA: {service.cta_text}</p>
+                <p>{new Date(service.updated_at).toLocaleDateString()}</p>
               </div>
             </div>
           </div>
