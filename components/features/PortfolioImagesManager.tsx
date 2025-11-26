@@ -242,9 +242,9 @@ export default function PortfolioImagesManager() {
 
                   {/* Metadata */}
                   <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-                    <p>📅 {new Date(image.created_at).toLocaleDateString()}</p>
+                    <p>Creada: {new Date(image.created_at).toLocaleDateString()}</p>
                     {image.service_id && (
-                      <p className="text-xs text-blue-600 dark:text-blue-400">🔗 Vinculada a servicio</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400">Vinculada a servicio</p>
                     )}
                   </div>
                 </div>

@@ -30,7 +30,7 @@ import { toast } from 'sonner'
 
 const portfolioImageSchema = z.object({
   title: z.union([z.string().max(200, 'El título es demasiado largo'), z.literal('')]).optional(),
-  alt: z.union([z.string().max(200, 'El texto alternativo es demasiado largo'), z.literal('')]).optional(),
+  alt: z.string().min(1, 'El texto alternativo es obligatorio').max(200, 'El texto alternativo es demasiado largo'),
   category_id: z.string().min(1, 'Debes seleccionar una categoría'),
   service_id: z.string().optional(),
 })
@@ -163,6 +163,7 @@ export function PortfolioImageUploadSheet({
   const hasValidationErrors = () => {
     return (
       !selectedFile ||
+      !watch('alt') ||
       !watch('category_id') ||
       Object.keys(errors).length > 0
     )
@@ -241,7 +242,7 @@ export function PortfolioImageUploadSheet({
             {!watch('title') && (
               <p className="text-xs text-muted-foreground">Ingresa un título descriptivo para la imagen (opcional)</p>
             )}
-            {watch('title') && watch('title').length > 200 && (
+            {(watch('title')?.length ?? 0) > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
                 El título es demasiado largo (máximo 200 caracteres)
               </p>
@@ -254,7 +255,7 @@ export function PortfolioImageUploadSheet({
           {/* Alt Text */}
           <div className="space-y-2">
             <Label htmlFor="alt" className="text-sm font-medium">
-              Texto Alternativo (Alt) ({watch('alt')?.length || 0}/200)
+              Texto Alternativo (Alt) <span className="text-red-500">*</span> ({watch('alt')?.length || 0}/200)
             </Label>
             <Input
               id="alt"
@@ -262,9 +263,9 @@ export function PortfolioImageUploadSheet({
               placeholder="Descripción para SEO"
             />
             {!watch('alt') && (
-              <p className="text-xs text-muted-foreground">Describe la imagen para accesibilidad y SEO (opcional)</p>
+              <p className="text-xs text-amber-600">El texto alternativo es obligatorio</p>
             )}
-            {watch('alt') && watch('alt').length > 200 && (
+            {(watch('alt')?.length ?? 0) > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
                 El texto alternativo es demasiado largo (máximo 200 caracteres)
               </p>
@@ -273,7 +274,7 @@ export function PortfolioImageUploadSheet({
               <p className="text-xs text-red-500">{errors.alt.message}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              Texto que se muestra cuando la imagen no se puede cargar
+              Describe la imagen para accesibilidad y SEO
             </p>
           </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useCreateHeroImage, useHeroImages } from '@/hooks/useHeroImages'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Upload, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface HeroImageUploadSheetProps {
   isOpen: boolean
@@ -70,6 +71,10 @@ export function HeroImageUploadSheet({
         is_visible: true,
       })
 
+      toast.success('Imagen agregada', {
+        description: 'La imagen del Hero se agregó correctamente',
+      })
+
       // Reset
       setTitle('')
       setAlt('')
@@ -79,9 +84,11 @@ export function HeroImageUploadSheet({
       }
       onOpenChange(false)
     } catch (error) {
-      setUploadError(
-        error instanceof Error ? error.message : 'Error al subir la imagen'
-      )
+      const errorMessage = error instanceof Error ? error.message : 'Error al subir la imagen'
+      setUploadError(errorMessage)
+      toast.error('Error al subir imagen', {
+        description: errorMessage,
+      })
     } finally {
       setIsUploading(false)
     }
@@ -125,8 +132,8 @@ export function HeroImageUploadSheet({
               Formatos: JPEG, PNG, WebP, GIF • Máximo: 5MB
             </p>
             {uploadError && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> {uploadError}
+              <p className="text-xs text-red-500">
+                {uploadError}
               </p>
             )}
           </div>
@@ -223,20 +230,6 @@ export function HeroImageUploadSheet({
               </Button>
             )}
           </div>
-
-          {createImage.isSuccess && (
-            <div className="text-sm text-green-600 flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full" />
-              Imagen subida correctamente
-            </div>
-          )}
-
-          {createImage.isError && (
-            <div className="text-sm text-red-500 flex items-center gap-2">
-              <span className="w-2 h-2 bg-red-500 rounded-full" />
-              Error al subir la imagen
-            </div>
-          )}
         </div>
       </SheetContent>
     </Sheet>
