@@ -177,8 +177,8 @@ export function HeroImagesGrid({ images }: HeroImagesGridProps) {
 
               {/* Metadata */}
               <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-                <p>📐 {image.width}x{image.height}px</p>
-                <p>📅 {new Date(image.uploaded_at).toLocaleDateString()}</p>
+                <p>Dimensiones: {image.width}x{image.height}px</p>
+                <p>Subida: {new Date(image.uploaded_at).toLocaleDateString()}</p>
               </div>
             </div>
           </div>

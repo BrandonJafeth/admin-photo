@@ -15,6 +15,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Upload, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface HeroImageEditSheetProps {
   image: HeroImage
@@ -64,13 +65,19 @@ export function HeroImageEditSheet({
         },
       })
 
+      toast.success('Imagen reemplazada', {
+        description: 'La imagen se actualizó correctamente',
+      })
+
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
     } catch (error) {
-      setUploadError(
-        error instanceof Error ? error.message : 'Error al subir la imagen'
-      )
+      const errorMessage = error instanceof Error ? error.message : 'Error al subir la imagen'
+      setUploadError(errorMessage)
+      toast.error('Error al subir imagen', {
+        description: errorMessage,
+      })
     } finally {
       setIsUploading(false)
     }
@@ -85,9 +92,15 @@ export function HeroImageEditSheet({
           alt: alt || undefined,
         },
       })
+      toast.success('Imagen actualizada', {
+        description: 'Los cambios se guardaron correctamente',
+      })
       onClose()
     } catch (error) {
       console.error('Error al guardar:', error)
+      toast.error('Error al actualizar', {
+        description: error instanceof Error ? error.message : 'No se pudieron guardar los cambios',
+      })
     }
   }
 
@@ -149,8 +162,8 @@ export function HeroImageEditSheet({
               </Button>
             </div>
             {uploadError && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
-                <span>⚠</span> {uploadError}
+              <p className="text-xs text-red-500">
+                {uploadError}
               </p>
             )}
             <p className="text-xs text-muted-foreground">
@@ -189,9 +202,9 @@ export function HeroImageEditSheet({
 
           {/* Metadata */}
           <div className="space-y-2 border-t pt-6 text-xs text-muted-foreground">
-            <p>📐 Dimensiones: {image.width}x{image.height}px</p>
-            <p>📅 Subida: {new Date(image.uploaded_at).toLocaleDateString()}</p>
-            <p>🔄 Actualizada: {new Date(image.updated_at).toLocaleDateString()}</p>
+            <p>Dimensiones: {image.width}x{image.height}px</p>
+            <p>Subida: {new Date(image.uploaded_at).toLocaleDateString()}</p>
+            <p>Actualizada: {new Date(image.updated_at).toLocaleDateString()}</p>
           </div>
 
           {/* Actions */}

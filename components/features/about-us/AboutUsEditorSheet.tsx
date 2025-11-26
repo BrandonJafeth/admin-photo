@@ -105,8 +105,8 @@ export function AboutUsEditorSheet({
                 className="text-base"
               />
               {errors.title && (
-                <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                  <span>⚠</span> {errors.title.message}
+                <p className="text-xs text-red-500 mt-1.5">
+                  {errors.title.message}
                 </p>
               )}
             </div>
@@ -122,12 +122,12 @@ export function AboutUsEditorSheet({
                 placeholder="Cuéntanos sobre tu negocio, tu historia, tus valores..."
               />
               {errors.description && (
-                <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                  <span>⚠</span> {errors.description.message}
+                <p className="text-xs text-red-500 mt-1.5">
+                  {errors.description.message}
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                💡 Usa saltos de línea para separar párrafos
+                Usa saltos de línea para separar párrafos
               </p>
             </div>
           </div>
@@ -187,8 +187,8 @@ export function AboutUsEditorSheet({
                 </Button>
               </div>
               {uploadError && (
-                <p className="text-xs text-red-500 flex items-center gap-1">
-                  <span>⚠</span> {uploadError}
+                <p className="text-xs text-red-500">
+                  {uploadError}
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
@@ -207,12 +207,12 @@ export function AboutUsEditorSheet({
                 className="font-mono text-xs"
               />
               {errors.image_url && (
-                <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                  <span>⚠</span> {errors.image_url.message}
+                <p className="text-xs text-red-500 mt-1.5">
+                  {errors.image_url.message}
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                📸 O pega la URL de la imagen aquí manualmente
+                O pega la URL de la imagen aquí manualmente
               </p>
             </div>
 
@@ -226,8 +226,8 @@ export function AboutUsEditorSheet({
                 placeholder="Ej: Equipo de trabajo en el estudio"
               />
               {errors.image_alt && (
-                <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                  <span>⚠</span> {errors.image_alt.message}
+                <p className="text-xs text-red-500 mt-1.5">
+                  {errors.image_alt.message}
                 </p>
               )}
               <p className="text-xs text-muted-foreground">

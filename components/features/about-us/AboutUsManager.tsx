@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AboutUsEditorSheet } from './AboutUsEditorSheet'
 import { Pencil } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function AboutUsManager() {
   const { data: aboutUs, isLoading } = useAboutUsActive()
@@ -99,9 +100,15 @@ export default function AboutUsManager() {
         ...data,
         image_url: imageUrl,
       })
+      toast.success('Sobre Nosotros actualizado', {
+        description: 'Los cambios se guardaron correctamente',
+      })
       setIsSheetOpen(false)
     } catch (error) {
       console.error('Error al actualizar:', error)
+      toast.error('Error al actualizar', {
+        description: error instanceof Error ? error.message : 'No se pudieron guardar los cambios',
+      })
     }
   }
 
