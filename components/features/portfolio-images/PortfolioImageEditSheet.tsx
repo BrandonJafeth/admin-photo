@@ -98,26 +98,30 @@ export function PortfolioImageEditSheet({
     }
   }
 
-  const onSubmit = async (data: PortfolioImageEditFormData) => {
-    try {
-      await updateImage.mutateAsync({
-        id: image.id,
-        payload: {
-          title: data.title || undefined,
-          alt: data.alt || undefined,
-        },
-      })
-      toast.success('¡Imagen actualizada!', {
-        description: 'Los cambios se guardaron correctamente',
-      })
-      onClose()
-    } catch (error) {
-      console.error('Error al guardar:', error)
-      toast.error('Error al guardar', {
-        description: error instanceof Error ? error.message : 'No se pudieron guardar los cambios',
-      })
-    }
+  const normalize = (value?: string | null) =>
+  value && value.trim().length > 0 ? value.trim() : null
+
+ const onSubmit = async (data: PortfolioImageEditFormData) => {
+  try {
+    await updateImage.mutateAsync({
+      id: image.id,
+      payload: {
+        title: normalize(data.title),
+        alt: normalize(data.alt),
+      },
+    })
+    toast.success('¡Imagen actualizada!', {
+      description: 'Los cambios se guardaron correctamente',
+    })
+    onClose()
+  } catch (error) {
+    console.error('Error al guardar:', error)
+    toast.error('Error al guardar', {
+      description:
+        error instanceof Error ? error.message : 'No se pudieron guardar los cambios',
+    })
   }
+}
 
   const hasValidationErrors = () => {
     return Object.keys(errors).length > 0
