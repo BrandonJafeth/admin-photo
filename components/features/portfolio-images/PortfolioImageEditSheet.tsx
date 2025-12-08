@@ -130,7 +130,7 @@ export function PortfolioImageEditSheet({
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto p-0">
-        <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="sticky top-0 z-10 bg-white border-b border-slate-200">
           <SheetHeader className="px-6 py-4">
             <SheetTitle className="text-xl">Editar Imagen</SheetTitle>
             <SheetDescription>
@@ -143,7 +143,7 @@ export function PortfolioImageEditSheet({
           {/* Preview */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Vista Previa</Label>
-            <div className="relative aspect-video overflow-hidden rounded-lg border-2 bg-slate-100 dark:bg-slate-800">
+            <div className="relative aspect-video overflow-hidden rounded-lg border-2 border-slate-200 bg-slate-50">
               <img
                 src={image.thumbnail_url || image.image_url}
                 alt={image.alt || 'Imagen del portafolio'}
@@ -185,11 +185,11 @@ export function PortfolioImageEditSheet({
               </Button>
             </div>
             {uploadError && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
+              <p className="text-xs text-red-500">
                 {uploadError}
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               Formatos: JPEG, PNG, WebP, GIF • Máximo: 5MB
             </p>
           </div>
@@ -232,13 +232,13 @@ export function PortfolioImageEditSheet({
             {errors.alt && (
               <p className="text-xs text-red-500">{errors.alt.message}</p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               Texto que se muestra cuando la imagen no se puede cargar
             </p>
           </div>
 
           {/* Metadata */}
-          <div className="space-y-2 border-t pt-6 text-xs text-muted-foreground">
+          <div className="space-y-2 border-t border-slate-200 pt-6 text-xs text-slate-500">
             <p>ID: {image.id}</p>
             <p>Creado: {new Date(image.created_at).toLocaleDateString()}</p>
             <p>Actualizado: {new Date(image.updated_at).toLocaleDateString()}</p>
@@ -252,7 +252,7 @@ export function PortfolioImageEditSheet({
           </div>
 
           {/* Actions */}
-          <div className="sticky bottom-0 bg-background border-t -mx-6 px-6 py-4 flex gap-3">
+          <div className="sticky bottom-0 bg-white border-t border-slate-200 -mx-6 px-6 py-4 flex gap-3">
             <Button
               type="submit"
               disabled={updateImage.isPending || hasValidationErrors()}

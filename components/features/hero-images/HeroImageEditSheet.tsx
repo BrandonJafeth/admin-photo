@@ -107,7 +107,7 @@ export function HeroImageEditSheet({
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto p-0">
-        <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="sticky top-0 z-10 bg-white border-b border-slate-200">
           <SheetHeader className="px-6 py-4">
             <SheetTitle className="text-xl">Editar Imagen del Hero</SheetTitle>
             <SheetDescription>
@@ -120,7 +120,7 @@ export function HeroImageEditSheet({
           {/* Preview */}
           <div className="space-y-2">
             <Label className="text-sm font-semibold">Vista Previa</Label>
-            <div className="relative aspect-video overflow-hidden rounded-lg border-2 bg-slate-100 dark:bg-slate-800">
+            <div className="relative aspect-video overflow-hidden rounded-lg border-2 border-slate-200 bg-slate-50">
               <img
                 src={image.thumbnail_url || image.url}
                 alt={image.alt || 'Hero image'}
@@ -166,7 +166,7 @@ export function HeroImageEditSheet({
                 {uploadError}
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               Formatos: JPEG, PNG, WebP, GIF • Máximo: 5MB
             </p>
           </div>
@@ -195,20 +195,20 @@ export function HeroImageEditSheet({
               onChange={e => setAlt(e.target.value)}
               placeholder="Descripción para accesibilidad"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               Describe brevemente la imagen para SEO y accesibilidad
             </p>
           </div>
 
-          {/* Metadata */}
-          <div className="space-y-2 border-t pt-6 text-xs text-muted-foreground">
+          {/* Order */}
+          <div className="space-y-2 border-t border-slate-200 pt-6 text-xs text-slate-500">
             <p>Dimensiones: {image.width}x{image.height}px</p>
             <p>Subida: {new Date(image.uploaded_at).toLocaleDateString()}</p>
             <p>Actualizada: {new Date(image.updated_at).toLocaleDateString()}</p>
           </div>
 
           {/* Actions */}
-          <div className="sticky bottom-0 bg-background border-t -mx-6 px-6 py-4 flex gap-3">
+          <div className="sticky bottom-0 bg-white border-t border-slate-200 -mx-6 px-6 py-4 flex gap-3">
             <Button
               type="submit"
               onClick={handleSave}

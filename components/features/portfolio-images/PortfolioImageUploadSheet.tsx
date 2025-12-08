@@ -172,7 +172,7 @@ export function PortfolioImageUploadSheet({
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto p-0">
-        <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="sticky top-0 z-10 bg-white border-b border-slate-200">
           <SheetHeader className="px-6 py-4">
             <SheetTitle className="text-xl">Subir Nueva Imagen</SheetTitle>
             <SheetDescription>
@@ -198,9 +198,9 @@ export function PortfolioImageUploadSheet({
                   id="file-upload"
                 />
                 <label htmlFor="file-upload" className="cursor-pointer">
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
                   <p className="text-sm font-medium mb-1">Click para seleccionar imagen</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-500">
                     JPEG, PNG, WebP, GIF • Máximo 5MB
                   </p>
                 </label>
@@ -240,7 +240,7 @@ export function PortfolioImageUploadSheet({
               placeholder="Ej: Boda de María y Juan"
             />
             {!watch('title') && (
-              <p className="text-xs text-muted-foreground">Ingresa un título descriptivo para la imagen (opcional)</p>
+              <p className="text-xs text-slate-500">Ingresa un título descriptivo para la imagen (opcional)</p>
             )}
             {(watch('title')?.length ?? 0) > 200 && (
               <p className="text-xs text-red-500 flex items-center gap-1">
@@ -273,7 +273,7 @@ export function PortfolioImageUploadSheet({
             {errors.alt && (
               <p className="text-xs text-red-500">{errors.alt.message}</p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               Describe la imagen para accesibilidad y SEO
             </p>
           </div>
@@ -300,7 +300,7 @@ export function PortfolioImageUploadSheet({
               </SelectContent>
             </Select>
             {!categoryId && (
-              <p className="text-xs text-muted-foreground">Selecciona la categoría para organizar la imagen</p>
+              <p className="text-xs text-slate-500">Selecciona la categoría para organizar la imagen</p>
             )}
             {errors.category_id && (
               <p className="text-xs text-red-500">{errors.category_id.message}</p>
@@ -332,13 +332,13 @@ export function PortfolioImageUploadSheet({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-slate-500">
               Vincula la imagen a un servicio específico
             </p>
           </div>
 
           {/* Actions */}
-          <div className="sticky bottom-0 bg-background border-t -mx-6 px-6 py-4 flex gap-3">
+          <div className="sticky bottom-0 bg-white border-t border-slate-200 -mx-6 px-6 py-4 flex gap-3">
             <Button
               type="submit"
               disabled={isUploading || hasValidationErrors()}
