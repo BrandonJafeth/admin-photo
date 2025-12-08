@@ -12,7 +12,7 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil } from 'lucide-react'
+import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil, ArrowDownUp, X } from 'lucide-react'
 import { PortfolioImageEditSheet } from './portfolio-images/PortfolioImageEditSheet'
 import { PortfolioImageUploadSheet } from './portfolio-images/PortfolioImageUploadSheet'
 import { toast } from 'sonner'
@@ -27,19 +27,22 @@ export default function PortfolioImagesManager() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
   const [isUploadSheetOpen, setIsUploadSheetOpen] = useState(false)
+  const [isReordering, setIsReordering] = useState(false)
 
   const nextOrder = images.length > 0 ? Math.max(...images.map(img => img.order)) + 1 : 0
 
   const handleDragStart = (id: string) => {
+    if (!isReordering) return
     setDraggedId(id)
   }
 
   const handleDragOver = (e: React.DragEvent) => {
+    if (!isReordering) return
     e.preventDefault()
   }
 
   const handleDrop = async (targetId: string) => {
-    if (!draggedId || draggedId === targetId) return
+    if (!isReordering || !draggedId || draggedId === targetId) return
 
     const draggedIndex = images.findIndex(img => img.id === draggedId)
     const targetIndex = images.findIndex(img => img.id === targetId)
@@ -121,18 +124,17 @@ export default function PortfolioImagesManager() {
   return (
     <div className="space-y-6">
       {/* Upload Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold text-lg mb-2">Subir Nueva Imagen</h3>
+      <div className="bg-white dark:bg-slate-950 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg mb-1">Subir Nueva Imagen</h3>
             <p className="text-sm text-muted-foreground">
               Completa los detalles y sube la imagen en un solo paso
             </p>
           </div>
-
           <Button
             onClick={() => setIsUploadSheetOpen(true)}
-            className="w-full gap-2"
+            className="gap-2 bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white"
           >
             <Upload className="w-4 h-4" />
             Nueva Imagen
@@ -141,23 +143,53 @@ export default function PortfolioImagesManager() {
       </div>
 
       {/* Images Grid */}
-      <div>
-        <h3 className="font-semibold text-lg mb-4">Galería de Imágenes ({images.length})</h3>
+      <div className="bg-white dark:bg-slate-950 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <h3 className="font-semibold text-lg">Galería de Imágenes ({images.length})</h3>
+            {isReordering && (
+              <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full font-medium flex items-center gap-1">
+                <ArrowDownUp className="w-3 h-3" />
+                Modo reordenamiento
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isReordering ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsReordering(!isReordering)}
+              className={isReordering ? "bg-blue-600 hover:bg-blue-700" : ""}
+            >
+              {isReordering ? (
+                <>
+                  <X className="w-4 h-4 mr-1" />
+                  Terminar
+                </>
+              ) : (
+                <>
+                  <ArrowDownUp className="w-4 h-4 mr-1" />
+                  Reordenar
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
 
         {images.length === 0 ? (
           <Card className="p-8 text-center">
             <p className="text-muted-foreground">No hay imágenes en la galería. Sube una para comenzar.</p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {images.map((image, index) => (
               <div
                 key={image.id}
-                draggable
+                draggable={isReordering}
                 onDragStart={() => handleDragStart(image.id)}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(image.id)}
-                className={`relative group rounded-lg overflow-hidden border-2 transition-all cursor-move ${
+                className={`relative group rounded-lg overflow-hidden border-2 transition-all ${isReordering ? 'cursor-move' : 'cursor-default'} ${
                   draggedId === image.id
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 opacity-50'
                     : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
@@ -172,24 +204,32 @@ export default function PortfolioImagesManager() {
                   />
 
                   {/* Overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        setEditingId(image.id)
-                        setIsEditSheetOpen(true)
-                      }}
-                      className="gap-1"
-                    >
-                      <Pencil className="w-4 h-4" />
-                      Editar
-                    </Button>
-                  </div>
+                  {!isReordering && (
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          setEditingId(image.id)
+                          setIsEditSheetOpen(true)
+                        }}
+                        className="gap-1"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        Editar
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Drag Handle - Solo visible en modo reordering */}
+                  {isReordering && (
+                    <div className="absolute top-2 left-2 bg-blue-600 text-white p-2 rounded cursor-move shadow-lg">
+                      <GripVertical className="w-4 h-4" />
+                    </div>
+                  )}
 
                   {image.is_featured && (
                     <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                      <span>⭐</span>
                       Destacada
                     </div>
                   )}
@@ -208,37 +248,40 @@ export default function PortfolioImagesManager() {
                       <p className="text-sm font-medium truncate">{image.title || 'Sin título'}</p>
                       <p className="text-xs text-muted-foreground truncate">{image.alt || 'Sin descripción'}</p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <GripVertical className="w-4 h-4 text-slate-400" />
-                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                        #{index + 1}
-                      </span>
-                    </div>
+                    {isReordering && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded">
+                          #{index + 1}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleToggleVisibility(image.id, image.is_visible)}
-                      className="flex-1"
-                    >
-                      {image.is_visible ? (
-                        <Eye className="w-4 h-4" />
-                      ) : (
-                        <EyeOff className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleDelete(image.id)}
-                      className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  {!isReordering && (
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleToggleVisibility(image.id, image.is_visible)}
+                        className="flex-1"
+                      >
+                        {image.is_visible ? (
+                          <Eye className="w-4 h-4" />
+                        ) : (
+                          <EyeOff className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(image.id)}
+                        className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Metadata */}
                   <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
