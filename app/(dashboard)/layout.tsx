@@ -9,9 +9,9 @@ export const metadata = {
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full bg-[#F5F5F7]">
         <Sidebar />
-        <main className="flex-1">
+        <main className="flex-1 bg-[#F5F5F7]">
           <SidebarHeaderTrigger />
           {children}
         </main>

@@ -98,7 +98,7 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
         {images.map((image, index) => (
           <div
             key={image.id}
@@ -106,7 +106,7 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
             onDragStart={isReordering ? () => handleDragStart(image.id) : undefined}
             onDragOver={isReordering ? handleDragOver : undefined}
             onDrop={isReordering ? () => handleDrop(image.id) : undefined}
-            className={`relative group rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-md hover:shadow-xl transition-all ${
+            className={`relative group rounded-xl overflow-hidden bg-white border border-slate-200 shadow-md hover:shadow-xl transition-all ${
               isReordering ? 'cursor-move' : ''
             } ${
               draggedId === image.id
@@ -115,7 +115,7 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
             }`}
           >
             {/* Imagen */}
-            <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
+            <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
               <img
                 src={image.thumbnail_url || image.url}
                 alt={image.alt || 'Hero image'}
@@ -138,14 +138,14 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
             <div className="p-5 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">{image.title || 'Sin título'}</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 min-h-[2.5rem]">{image.alt || 'Sin descripción'}</p>
+                  <h3 className="text-base font-bold text-slate-900 mb-1">{image.title || 'Sin título'}</h3>
+                  <p className="text-sm text-slate-600 line-clamp-2 min-h-[2.5rem]">{image.alt || 'Sin descripción'}</p>
                 </div>
               </div>
 
               {/* Actions */}
               {!isReordering && (
-                <div className="flex gap-2 pt-3 border-t border-slate-200 dark:border-slate-700">
+                <div className="flex gap-2 pt-3 border-t border-slate-200">
                   <Button
                     size="sm"
                     variant="outline"

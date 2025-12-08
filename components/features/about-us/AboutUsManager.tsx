@@ -131,31 +131,48 @@ export default function AboutUsManager() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-96 w-full" />
+      <div className="h-full overflow-hidden">
+        <div className="h-full overflow-y-auto bg-[#F5F5F7]">
+          <div className="p-6">
+            <div className="max-w-[1400px] mx-auto space-y-4">
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-96 w-full" />
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (!aboutUs) {
     return (
-      <Card className="p-6">
-        <p className="text-center text-muted-foreground">
-          No hay información de About Us configurada
-        </p>
-      </Card>
+      <div className="h-full overflow-hidden">
+        <div className="h-full overflow-y-auto bg-[#F5F5F7]">
+          <div className="p-6">
+            <div className="max-w-[1400px] mx-auto">
+              <Card className="p-6">
+                <p className="text-center text-slate-600">
+                  No hay información de About Us configurada
+                </p>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-900">
-      <form onSubmit={handleSubmit(onSubmit)} className="max-w-7xl mx-auto px-6 py-8">
+    <div className="h-full overflow-hidden">
+      <div className="h-full overflow-y-auto bg-[#F5F5F7]">
+        <div className="p-6">
+          <div className="max-w-[1400px] mx-auto">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Header de Sección */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Sobre Nosotros</h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Gestiona el contenido principal del sitio web</p>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Sobre Nosotros</h1>
+            <p className="text-sm text-slate-600">Gestiona el contenido principal del sitio web</p>
           </div>
         </div>
 
@@ -163,14 +180,14 @@ export default function AboutUsManager() {
         <div className="grid md:grid-cols-2 gap-6">
           {/* Columna Izquierda - Formulario */}
           <div className="space-y-6">
-                  <Card className="p-6 space-y-5">
+                  <Card className="p-6 space-y-5 bg-white border border-slate-200 shadow-sm">
               <div>
-                <h2 className="text-lg font-bold mb-4">Imagen de la Sección</h2>
+                <h2 className="text-lg font-bold text-slate-900 mb-4">Imagen de la Sección</h2>
                 
                 <div className="space-y-4">
                   {/* Preview de imagen */}
                   {previewData?.image_url && (
-                    <div className="relative aspect-video w-full overflow-hidden rounded-lg border-2 bg-slate-100 dark:bg-slate-800">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-lg border-2 border-slate-200 bg-slate-100">
                       <img
                         src={previewData.image_url}
                         alt={previewData.image_alt || 'Preview'}
@@ -181,7 +198,7 @@ export default function AboutUsManager() {
 
                   {/* Upload Button */}
                   <div className="space-y-2">
-                    <Label>Subir Nueva Imagen</Label>
+                    <Label className="text-slate-900">Subir Nueva Imagen</Label>
                     <div className="flex gap-2">
                       <input
                         type="file"
@@ -211,13 +228,13 @@ export default function AboutUsManager() {
                         )}
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-slate-600">
                       Formatos: JPEG, PNG, WebP • Máximo: 5MB
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="image_alt">Texto Alternativo (SEO)</Label>
+                    <Label htmlFor="image_alt" className="text-slate-900">Texto Alternativo (SEO)</Label>
                     <Input
                       id="image_alt"
                       {...register('image_alt')}
@@ -235,13 +252,13 @@ export default function AboutUsManager() {
 
           {/* Columna Derecha - Vista Previa */}
           <div className="space-y-6">
-              <Card className="p-6 space-y-5">
+              <Card className="p-6 space-y-5 bg-white border border-slate-200 shadow-sm">
               <div>
-                <h2 className="text-lg font-bold mb-4">Contenido de Texto</h2>
+                <h2 className="text-lg font-bold text-slate-900 mb-4">Contenido de Texto</h2>
                 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Título de la Sección</Label>
+                    <Label htmlFor="title" className="text-slate-900">Título de la Sección</Label>
                     {isEditingTitle ? (
                       <div className="space-y-2">
                         <Input
@@ -274,7 +291,7 @@ export default function AboutUsManager() {
                           <Button
                             type="button"
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => {
                               setIsEditingTitle(false)
                               reset()
@@ -285,8 +302,8 @@ export default function AboutUsManager() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-slate-50 dark:bg-slate-900">
-                        <span className="flex-1 text-sm">{watch('title') || 'Haz clic en el lápiz para editar'}</span>
+                      <div className="flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-md bg-slate-50">
+                        <span className="flex-1 text-sm text-slate-900">{watch('title') || 'Haz clic en el lápiz para editar'}</span>
                         <Button
                           type="button"
                           size="sm"
@@ -304,7 +321,7 @@ export default function AboutUsManager() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">
+                    <Label htmlFor="description" className="text-slate-900">
                       Descripción ({watch('description')?.length || 0}/2000)
                     </Label>
                     {isEditingDescription ? (
@@ -312,7 +329,7 @@ export default function AboutUsManager() {
                         <textarea
                           id="description"
                           {...register('description')}
-                          className="w-full min-h-[200px] px-3 py-2 border rounded-md resize-y text-sm leading-relaxed focus:ring-2 focus:ring-primary"
+                          className="w-full min-h-[200px] px-3 py-2 border border-slate-300 rounded-md resize-y text-sm leading-relaxed text-slate-900 focus:ring-2 focus:ring-[#5B4EEB] focus:border-[#5B4EEB]"
                           placeholder="Cuéntanos sobre tu negocio, tu historia, tus valores..."
                           autoFocus
                         />
@@ -340,7 +357,7 @@ export default function AboutUsManager() {
                           <Button
                             type="button"
                             size="sm"
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => {
                               setIsEditingDescription(false)
                               reset()
@@ -352,7 +369,7 @@ export default function AboutUsManager() {
                       </div>
                     ) : (
                       <div className="relative">
-                        <div className="px-3 py-2 border rounded-md bg-slate-50 dark:bg-slate-900 min-h-[100px] text-sm whitespace-pre-wrap">
+                        <div className="px-3 py-2 border border-slate-200 rounded-md bg-slate-50 min-h-[100px] text-sm text-slate-900 whitespace-pre-wrap">
                           {watch('description') || 'Haz clic en el lápiz para editar'}
                         </div>
                         <Button
@@ -375,7 +392,10 @@ export default function AboutUsManager() {
             </Card>
           </div>
         </div>
-      </form>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

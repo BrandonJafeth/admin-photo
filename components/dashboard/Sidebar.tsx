@@ -15,11 +15,11 @@ import {
 
 export default function Sidebar() {
   return (
-    <AnimateSidebar className="w-64">
-      <SidebarHeader className="p-3">
+    <AnimateSidebar className="w-64 bg-white border-r border-slate-200 shadow-sm">
+      <SidebarHeader className="p-4 border-b border-slate-200">
         <div className="flex items-center gap-2">
           <SidebarTrigger />
-          <h3 className="text-sm font-semibold">Admin</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Admin Dashboard</h3>
         </div>
       </SidebarHeader>
 
@@ -57,7 +57,7 @@ export default function Sidebar() {
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 text-xs text-gray-500">v1.0</SidebarFooter>
+      <SidebarFooter className="p-4 border-t border-slate-200 text-xs text-slate-500">v1.0</SidebarFooter>
     </AnimateSidebar>
   )
 }

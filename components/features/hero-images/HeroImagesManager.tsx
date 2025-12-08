@@ -29,20 +29,22 @@ export default function HeroImagesManager() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-900">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="h-full overflow-hidden">
+      <div className="h-full overflow-y-auto bg-[#F5F5F7]">
+        <div className="p-6">
+          <div className="max-w-[1400px] mx-auto">
         {/* Header de Sección con Botones */}
-        <div className="flex items-start justify-between gap-4 mb-6">
+        <div className="flex items-start justify-between gap-4 mb-6 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Imágenes Hero</h1>
+              <h1 className="text-2xl font-bold text-slate-900">Imágenes Hero</h1>
               {isReordering && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Modo reordenamiento
                 </span>
               )}
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Gestiona las imágenes principales del sitio</p>
+            <p className="text-sm text-slate-600">Gestiona las imágenes principales del sitio</p>
           </div>
           
           <div className="flex gap-2">
@@ -76,12 +78,14 @@ export default function HeroImagesManager() {
 
         {/* Grid de Imágenes */}
         {images.length === 0 ? (
-          <Card className="p-12 text-center bg-white dark:bg-slate-900 shadow-sm">
-            <p className="text-muted-foreground">No hay imágenes del hero. Agrega una para comenzar.</p>
+          <Card className="p-12 text-center bg-white border border-slate-200 shadow-sm">
+            <p className="text-slate-600">No hay imágenes del hero. Agrega una para comenzar.</p>
           </Card>
         ) : (
           <HeroImagesGrid images={images} isReordering={isReordering} />
         )}
+          </div>
+        </div>
       </div>
 
       {/* Upload Sheet */}
