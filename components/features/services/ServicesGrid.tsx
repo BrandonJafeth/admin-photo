@@ -11,9 +11,10 @@ import { toast } from 'sonner'
 
 interface ServicesGridProps {
   services: Service[]
+  isReordering: boolean
 }
 
-export function ServicesGrid({ services }: ServicesGridProps) {
+export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
@@ -25,15 +26,17 @@ export function ServicesGrid({ services }: ServicesGridProps) {
   const editingService = services.find(svc => svc.id === editingId)
 
   const handleDragStart = (id: string) => {
+    if (!isReordering) return
     setDraggedId(id)
   }
 
   const handleDragOver = (e: React.DragEvent) => {
+    if (!isReordering) return
     e.preventDefault()
   }
 
   const handleDrop = async (targetId: string) => {
-    if (!draggedId || draggedId === targetId) return
+    if (!isReordering || !draggedId || draggedId === targetId) return
 
     const draggedIndex = services.findIndex(svc => svc.id === draggedId)
     const targetIndex = services.findIndex(svc => svc.id === targetId)
@@ -120,17 +123,17 @@ export function ServicesGrid({ services }: ServicesGridProps) {
         {services.map((service, index) => (
           <div
             key={service.id}
-            draggable
+            draggable={isReordering}
             onDragStart={() => handleDragStart(service.id)}
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(service.id)}
-            className={`relative group rounded-lg overflow-hidden border-2 transition-all cursor-move ${draggedId === service.id
-              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 opacity-50'
-              : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
+            className={`relative group rounded-xl overflow-hidden bg-white border border-slate-200 shadow-md hover:shadow-xl transition-all ${isReordering ? 'cursor-move' : 'cursor-default'} ${draggedId === service.id
+              ? 'ring-2 ring-blue-500 scale-95 opacity-50'
+              : 'hover:scale-[1.02]'
               }`}
           >
             {/* Imagen */}
-            <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800">
+            <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
               {service.image ? (
                 <img
                   src={service.image}
@@ -138,79 +141,94 @@ export function ServicesGrid({ services }: ServicesGridProps) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800">
-                  <span className="text-slate-400 text-sm">Sin imagen</span>
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
+                  <span className="text-slate-500 text-sm">Sin imagen</span>
                 </div>
               )}
 
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    setEditingId(service.id)
-                    setIsSheetOpen(true)
-                  }}
-                  className="gap-1"
-                >
-                  <Pencil className="w-4 h-4" />
-                  Editar
-                </Button>
-              </div>
+              {/* Badge de Estado - Arriba derecha */}
+              {!isReordering && (
+                <div className="absolute top-3 right-3">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${service.is_active
+                    ? 'bg-green-500 text-white'
+                    : 'bg-slate-400 text-white'
+                    }`}>
+                    {service.is_active ? 'Activo' : 'Inactivo'}
+                  </span>
+                </div>
+              )}
+
+              {/* Drag Handle - Solo visible en modo reordering */}
+              {isReordering && (
+                <div className="absolute top-2 left-2 bg-blue-600 text-white p-2 rounded cursor-move shadow-lg">
+                  <GripVertical className="w-4 h-4" />
+                </div>
+              )}
             </div>
 
             {/* Info */}
-            <div className="p-3 space-y-2 bg-white dark:bg-slate-950">
+            <div className="p-5 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate">{service.title}</p>
-                  <p className="text-xs text-muted-foreground truncate">/{service.slug}</p>
+                  <h3 className="text-base font-bold text-slate-900 mb-1">{service.title}</h3>
+                  <p className="text-xs text-indigo-600 font-medium">/{service.slug}</p>
                 </div>
-                <div className="flex items-center gap-1">
-                  <GripVertical className="w-4 h-4 text-slate-400" />
-                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                    #{index + 1}
-                  </span>
-                </div>
+                {isReordering && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                      #{index + 1}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Description */}
-              <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+              <p className="text-sm text-slate-600 line-clamp-2 min-h-[2.5rem]">
                 {service.description}
               </p>
 
               {/* Actions */}
-              <div className="flex gap-1 pt-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleToggleVisibility(service.id, service.is_active)}
-                  className="flex-1"
-                  title={service.is_active ? 'Ocultar' : 'Mostrar'}
-                >
-                  {service.is_active ? (
-                    <Eye className="w-4 h-4" />
-                  ) : (
-                    <EyeOff className="w-4 h-4" />
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleDelete(service.id, service.title)}
-                  className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                  title="Eliminar"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              {!isReordering && (
+                <div className="flex gap-2 pt-3 border-t border-slate-200">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleToggleVisibility(service.id, service.is_active)}
+                    className="flex-1 gap-1.5 text-xs"
+                    title={service.is_active ? 'Ocultar' : 'Mostrar'}
+                  >
+                    {service.is_active ? (
+                      <Eye className="w-3.5 h-3.5" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5" />
+                    )}
+                    Ver
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingId(service.id)
+                      setIsSheetOpen(true)
+                    }}
+                    className="flex-1 gap-1.5 text-xs"
+                    title="Editar"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(service.id, service.title)}
+                    className="gap-1.5 text-xs"
+                    title="Eliminar"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              )}
 
-              {/* Metadata */}
-              <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-                <p>CTA: {service.cta_text}</p>
-                <p>{new Date(service.updated_at).toLocaleDateString()}</p>
-              </div>
             </div>
           </div>
         ))}

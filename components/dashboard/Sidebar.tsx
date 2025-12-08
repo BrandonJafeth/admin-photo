@@ -15,11 +15,11 @@ import {
 
 export default function Sidebar() {
   return (
-    <AnimateSidebar className="w-64">
-      <SidebarHeader className="p-3">
+    <AnimateSidebar className="border-r bg-whi">
+      <SidebarHeader className="p-4 border-b">
         <div className="flex items-center gap-2">
           <SidebarTrigger />
-          <h3 className="text-sm font-semibold">Admin</h3>
+          <h3 className="text-sm font-semibold text-white">Admin Dashboard</h3>
         </div>
       </SidebarHeader>
 
@@ -27,37 +27,37 @@ export default function Sidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/dashboard" className="text-sm">Dashboard</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/contenido">Contenido</Link>
+              <Link href="/contenido" className="text-sm">Contenido</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/servicios">Servicios</Link>
+              <Link href="/servicios" className="text-sm">Servicios</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/galeria">Galería</Link>
+              <Link href="/galeria" className="text-sm">Galería</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/mensajes">Mensajes</Link>
+              <Link href="/mensajes" className="text-sm">Mensajes</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter className="p-3 text-xs text-gray-500">v1.0</SidebarFooter>
+      <SidebarFooter className="p-4 border-t text-xs">v1.0</SidebarFooter>
     </AnimateSidebar>
   )
 }

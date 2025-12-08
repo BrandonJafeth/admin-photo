@@ -7,12 +7,13 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { HeroImageUploadSheet } from './HeroImageUploadSheet'
-import { Plus } from 'lucide-react'
+import { Plus, ArrowDownUp, X } from 'lucide-react'
 import { HeroImagesGrid } from './HeroImagesGrid'
 
 export default function HeroImagesManager() {
   const { data: images = [], isLoading } = useHeroImages()
   const [isUploadSheetOpen, setIsUploadSheetOpen] = useState(false)
+  const [isReordering, setIsReordering] = useState(false)
 
   if (isLoading) {
     return (
@@ -29,44 +30,60 @@ export default function HeroImagesManager() {
 
   return (
     <div className="h-full overflow-hidden">
-      {/* Vista Previa - Estilo página real */}
-      <div className="h-full overflow-y-auto">
-        <div className="sticky top-0 z-10 flex justify-end p-4">
-          <Button
-            onClick={() => setIsUploadSheetOpen(true)}
-            className="gap-2 shadow-lg"
-          >
-            <Plus className="w-4 h-4" />
-            Agregar Imagen
-          </Button>
+      <div className="h-full overflow-y-auto bg-[#F5F5F7]">
+        <div className="p-6">
+          <div className="max-w-[1400px] mx-auto">
+        {/* Header de Sección con Botones */}
+        <div className="flex items-start justify-between gap-4 mb-6 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl font-bold text-slate-900">Imágenes Hero</h1>
+              {isReordering && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  Modo reordenamiento
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-slate-600">Gestiona las imágenes principales del sitio</p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button
+              variant={isReordering ? "default" : "outline"}
+              onClick={() => setIsReordering(!isReordering)}
+              className="gap-2"
+            >
+              {isReordering ? (
+                <>
+                  <X className="w-4 h-4" />
+                  Terminar
+                </>
+              ) : (
+                <>
+                  <ArrowDownUp className="w-4 h-4" />
+                  Reordenar
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={() => setIsUploadSheetOpen(true)}
+              disabled={isReordering}
+              className="gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Agregar Imagen
+            </Button>
+          </div>
         </div>
 
-        <div className="px-8 pb-8 -mt-16">
-          {/* Grid de Imágenes */}
-          <div className="bg-white dark:bg-slate-950 rounded-lg overflow-hidden shadow-xl">
-            <div className="p-8">
-              <div className="max-w-7xl mx-auto">
-                <h2 className="text-2xl font-bold mb-6">Imágenes del Hero ({images.length})</h2>
-
-                {images.length === 0 ? (
-                  <Card className="p-8 text-center">
-                    <p className="text-muted-foreground">No hay imágenes del hero. Agrega una para comenzar.</p>
-                  </Card>
-                ) : (
-                  <HeroImagesGrid images={images} />
-                )}
-              </div>
-            </div>
-
-            {/* Info Bar */}
-            <div className="border-t bg-slate-50 dark:bg-slate-900/50 px-8 py-3">
-              <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                  {images.length} imágenes en el hero
-                </span>
-              </div>
-            </div>
+        {/* Grid de Imágenes */}
+        {images.length === 0 ? (
+          <Card className="p-12 text-center bg-white border border-slate-200 shadow-sm">
+            <p className="text-slate-600">No hay imágenes del hero. Agrega una para comenzar.</p>
+          </Card>
+        ) : (
+          <HeroImagesGrid images={images} isReordering={isReordering} />
+        )}
           </div>
         </div>
       </div>

@@ -71,8 +71,8 @@ export default function MessagesManager() {
       header: 'Fecha',
       cell: ({ row }) => (
         <div className="whitespace-nowrap">
-          {format(new Date(row.original.created_at), 'dd MMM yyyy', { locale: es })}
-          <div className="text-xs text-muted-foreground">
+          <div className="text-sm text-slate-900">{format(new Date(row.original.created_at), 'dd MMM yyyy', { locale: es })}</div>
+          <div className="text-xs text-slate-500">
             {format(new Date(row.original.created_at), 'HH:mm')}
           </div>
         </div>
@@ -83,8 +83,8 @@ export default function MessagesManager() {
       header: 'Cliente',
       cell: ({ row }) => (
         <div>
-          <div className="font-medium">{row.original.name}</div>
-          <div className="text-xs text-muted-foreground">{row.original.email}</div>
+          <div className="font-medium text-slate-900">{row.original.name}</div>
+          <div className="text-xs text-slate-600">{row.original.email}</div>
         </div>
       ),
     },
@@ -92,7 +92,11 @@ export default function MessagesManager() {
       accessorKey: 'service_type',
       header: 'Servicio',
       cell: ({ row }) => (
-        row.original.service_type || <span className="text-muted-foreground italic">General</span>
+        row.original.service_type ? (
+          <span className="text-sm text-slate-900">{row.original.service_type}</span>
+        ) : (
+          <span className="text-sm text-slate-500 italic">General</span>
+        )
       ),
     },
     {
@@ -100,9 +104,9 @@ export default function MessagesManager() {
       header: 'Evento',
       cell: ({ row }) => (
         row.original.event_date ? (
-          format(new Date(row.original.event_date), 'dd MMM yyyy', { locale: es })
+          <span className="text-sm text-slate-900">{format(new Date(row.original.event_date), 'dd MMM yyyy', { locale: es })}</span>
         ) : (
-          <span className="text-muted-foreground">-</span>
+          <span className="text-sm text-slate-500">-</span>
         )
       ),
     },
@@ -120,7 +124,7 @@ export default function MessagesManager() {
       cell: ({ row }) => (
         <div className="text-right">
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={() => router.push(`/mensajes/${row.original.id}`)}
           >
@@ -161,43 +165,46 @@ export default function MessagesManager() {
   }, [filterStatus, table])
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Mensajes</h1>
-          <p className="text-muted-foreground">Gestiona las solicitudes de contacto y reservas.</p>
-        </div>
-        <Button onClick={() => refetch()} variant="outline" size="sm" disabled={isLoading}>
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-          Actualizar
-        </Button>
-      </div>
+    <div className="h-full overflow-hidden">
+      <div className="h-full overflow-y-auto bg-[#F5F5F7]">
+        <div className="p-6">
+          <div className="max-w-[1400px] mx-auto space-y-6 p-6 bg-white rounded-lg shadow">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">Mensajes</h1>
+                <p className="text-slate-600">Gestiona las solicitudes de contacto y reservas.</p>
+              </div>
+              <Button onClick={() => refetch()} variant="outline" size="sm" disabled={isLoading}>
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Actualizar
+              </Button>
+            </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre, email o servicio..."
-            className="pl-8"
-            value={globalFilter ?? ''}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-          />
-        </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filtrar por estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los estados</SelectItem>
-            <SelectItem value="pending">Pendientes</SelectItem>
-            <SelectItem value="read">Leídos</SelectItem>
-            <SelectItem value="responded">Respondidos</SelectItem>
-            <SelectItem value="archived">Archivados</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Buscar por nombre, email o servicio..."
+                  className="pl-8"
+                  value={globalFilter ?? ''}
+                  onChange={(e) => setGlobalFilter(e.target.value)}
+                />
+              </div>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="pending">Pendientes</SelectItem>
+                  <SelectItem value="read">Leídos</SelectItem>
+                  <SelectItem value="responded">Respondidos</SelectItem>
+                  <SelectItem value="archived">Archivados</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-      <div className="border rounded-md">
+            <div className="border border-slate-200 rounded-lg bg-white shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (
@@ -219,7 +226,7 @@ export default function MessagesManager() {
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-slate-400" />
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (
@@ -234,32 +241,32 @@ export default function MessagesManager() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={columns.length} className="h-24 text-center text-slate-600">
                   No se encontraron mensajes.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-      </div>
+            </div>
 
-      <div className="flex flex-col gap-4 pt-4">
+            <div className="flex flex-col gap-4 pt-4">
         {/* Info row - Left aligned */}
         <div className="flex items-center justify-between px-2">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-600">
             Mostrando{' '}
-            <span className="font-medium text-foreground">
+            <span className="font-medium text-slate-900">
               {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
             </span>
             {' '}-{' '}
-            <span className="font-medium text-foreground">
+            <span className="font-medium text-slate-900">
               {Math.min(
                 (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
                 table.getFilteredRowModel().rows.length
               )}
             </span>
             {' '}de{' '}
-            <span className="font-medium text-foreground">
+            <span className="font-medium text-slate-900">
               {table.getFilteredRowModel().rows.length}
             </span>
             {' '}mensajes
@@ -267,7 +274,7 @@ export default function MessagesManager() {
 
           {/* Rows per page selector */}
           <div className="flex items-center gap-2">
-            <p className="text-sm font-medium whitespace-nowrap">Filas por página</p>
+            <p className="text-sm font-medium text-slate-900 whitespace-nowrap">Filas por página</p>
             <Select
               value={`${table.getState().pagination.pageSize}`}
               onValueChange={(value) => {
@@ -278,7 +285,7 @@ export default function MessagesManager() {
                 <SelectValue placeholder={table.getState().pagination.pageSize} />
               </SelectTrigger>
               <SelectContent side="top">
-                {[10, 20, 50, 100].map((pageSize) => (
+                {[5, 10, 25, 50].map((pageSize) => (
                   <SelectItem key={pageSize} value={`${pageSize}`}>
                     {pageSize}
                   </SelectItem>
@@ -312,7 +319,7 @@ export default function MessagesManager() {
           </Button>
 
           <div className="flex items-center gap-1 px-4">
-            <span className="text-sm font-medium whitespace-nowrap">
+            <span className="text-sm font-medium text-slate-900 whitespace-nowrap">
               Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
             </span>
           </div>
@@ -337,6 +344,9 @@ export default function MessagesManager() {
             <ChevronsRight className="h-4 w-4" />
             <span className="sr-only">Última página</span>
           </Button>
+        </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
