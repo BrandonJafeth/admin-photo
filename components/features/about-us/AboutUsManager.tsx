@@ -9,14 +9,17 @@ import { uploadToCloudinary } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AboutUsEditorSheet } from './AboutUsEditorSheet'
-import { Pencil } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Pencil, Upload, Loader2, Eye, Save } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function AboutUsManager() {
   const { data: aboutUs, isLoading } = useAboutUsActive()
   const updateAboutUs = useUpdateAboutUs()
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
 
   const form = useForm<AboutUsFormData>({
     resolver: zodResolver(aboutUsSchema),
@@ -71,39 +74,53 @@ export default function AboutUsManager() {
     }
   }, [aboutUs, reset])
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Formato inválido', {
+        description: 'Solo se permiten archivos de imagen',
+      })
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagen muy grande', {
+        description: 'El tamaño máximo es 5MB',
+      })
+      return
+    }
+
+    setIsUploading(true)
+
+    try {
+      const result = await uploadToCloudinary(file, 'about-us')
+      setValue('image_url', result.url, { shouldDirty: true })
+      setValue('image_alt', file.name.replace(/\.[^/.]+$/, ''), { shouldDirty: true })
+      toast.success('Imagen subida correctamente')
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast.error('Error al subir imagen', {
+        description: 'No se pudo subir la imagen. Intenta nuevamente.',
+      })
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const onSubmit = async (data: AboutUsFormData) => {
     if (!aboutUs?.id) return
 
     try {
-      let imageUrl = data.image_url
-
-      // Si la URL es un blob (imagen en memoria), subirla a Cloudinary
-      if (imageUrl && imageUrl.startsWith('blob:')) {
-        // Convertir blob URL a File
-        const response = await fetch(imageUrl)
-        const blob = await response.blob()
-        const file = new File([blob], 'about-us-image', { type: blob.type })
-        
-        // Subir a Cloudinary
-        const result = await uploadToCloudinary(file, 'about-us')
-        imageUrl = result.url
-      }
-
       await updateAboutUs.mutateAsync({
         id: aboutUs.id,
-        payload: {
-          ...data,
-          image_url: imageUrl,
-        },
+        payload: data,
       })
-      reset({
-        ...data,
-        image_url: imageUrl,
-      })
+      reset(data)
       toast.success('Sobre Nosotros actualizado', {
         description: 'Los cambios se guardaron correctamente',
       })
-      setIsSheetOpen(false)
     } catch (error) {
       console.error('Error al actualizar:', error)
       toast.error('Error al actualizar', {
@@ -132,106 +149,233 @@ export default function AboutUsManager() {
   }
 
   return (
-    <div className="h-full overflow-hidden">
-      {/* Vista Previa - Estilo página real */}
-      <div className="h-full overflow-y-auto">
-        <div className="sticky top-0 z-10 flex justify-end p-4">
-          <Button
-            onClick={() => setIsSheetOpen(true)}
-            className="gap-2 shadow-lg"
-          >
-            <Pencil className="w-4 h-4" />
-            Editar Sección
-          </Button>
+    <div className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-900">
+      <form onSubmit={handleSubmit(onSubmit)} className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header de Sección */}
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Sobre Nosotros</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Gestiona el contenido principal del sitio web</p>
+          </div>
         </div>
 
-        <div className="px-8 pb-8 -mt-16">
-          {/* Preview Section - Estilo Landing */}
-          <div className="bg-white dark:bg-slate-950 rounded-lg overflow-hidden shadow-xl">
-            <div className="p-8 md:p-12 lg:p-16">
-              <div className="max-w-7xl mx-auto">
-                <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-center">
-                  {/* Imagen Preview con Marco Decorativo */}
-                  <div className="order-2 md:order-1 flex justify-center">
-                    {previewData?.image_url ? (
-                      <div className="relative w-full max-w-sm">
-                        {/* Marco decorativo exterior */}
-                        <div className="absolute -inset-4 border-4 border-black dark:border-white transform -rotate-3"></div>
-                        <div className="absolute -inset-2 border-4 border-black dark:border-white"></div>
-                        
-                        {/* Imagen */}
-                        <div className="relative aspect-[3/4] rounded-sm overflow-hidden shadow-2xl bg-slate-200 dark:bg-slate-700">
-                          <img
-                            src={previewData.image_url}
-                            alt={previewData.image_alt || 'About Us'}
-                            className="object-cover w-full h-full"
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative w-full max-w-sm">
-                        {/* Marco decorativo exterior */}
-                        <div className="absolute -inset-4 border-4 border-black dark:border-white transform -rotate-3"></div>
-                        <div className="absolute -inset-2 border-4 border-black dark:border-white"></div>
-                        
-                        <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-slate-200 dark:bg-slate-700 flex items-center justify-center border-2 border-dashed border-slate-400">
-                          <div className="text-center space-y-2">
-                            <p className="text-slate-400 font-medium">Sin imagen</p>
-                            <p className="text-xs text-slate-400">Agrega una imagen desde el editor</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+        {/* Grid de 2 columnas */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Columna Izquierda - Formulario */}
+          <div className="space-y-6">
+                  <Card className="p-6 space-y-5">
+              <div>
+                <h2 className="text-lg font-bold mb-4">Imagen de la Sección</h2>
+                
+                <div className="space-y-4">
+                  {/* Preview de imagen */}
+                  {previewData?.image_url && (
+                    <div className="relative aspect-video w-full overflow-hidden rounded-lg border-2 bg-slate-100 dark:bg-slate-800">
+                      <img
+                        src={previewData.image_url}
+                        alt={previewData.image_alt || 'Preview'}
+                        className="object-contain w-full h-full"
+                      />
+                    </div>
+                  )}
+
+                  {/* Upload Button */}
+                  <div className="space-y-2">
+                    <Label>Subir Nueva Imagen</Label>
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={isUploading}
+                        className="hidden"
+                        id="image-upload"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('image-upload')?.click()}
+                        disabled={isUploading}
+                        className="w-full gap-2"
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Subiendo...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4" />
+                            Seleccionar Imagen
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Formatos: JPEG, PNG, WebP • Máximo: 5MB
+                    </p>
                   </div>
 
-                  {/* Contenido Preview */}
-                  <div className="order-1 md:order-2 space-y-6">
-                    {!previewData?.is_active && (
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded-full text-sm font-medium">
-                        <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                        Oculto en el sitio
-                      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="image_alt">Texto Alternativo (SEO)</Label>
+                    <Input
+                      id="image_alt"
+                      {...register('image_alt')}
+                      placeholder="Ej: Equipo de trabajo en el estudio"
+                    />
+                    {errors.image_alt && (
+                      <p className="text-xs text-red-500">{errors.image_alt.message}</p>
                     )}
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white leading-tight uppercase tracking-tight">
-                      {previewData?.title || 'Título de la sección'}
-                    </h2>
-                    <div className="h-1 w-16 bg-slate-900 dark:bg-white"></div>
-                    <div className="space-y-4">
-                      <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                        {previewData?.description || 'La descripción de la sección aparecerá aquí...'}
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
+           
+          </div>
 
-            {/* Info Bar */}
-            <div className="border-t bg-slate-50 dark:bg-slate-900/50 px-8 py-3">
-              <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                  Vista previa en tiempo real
-                </span>
-                <span>Orden de visualización: {previewData?.order ?? 0}</span>
+          {/* Columna Derecha - Vista Previa */}
+          <div className="space-y-6">
+              <Card className="p-6 space-y-5">
+              <div>
+                <h2 className="text-lg font-bold mb-4">Contenido de Texto</h2>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Título de la Sección</Label>
+                    {isEditingTitle ? (
+                      <div className="space-y-2">
+                        <Input
+                          id="title"
+                          {...register('title')}
+                          placeholder="Ej: Sobre Nosotros"
+                          autoFocus
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={async () => {
+                              setIsEditingTitle(false)
+                              if (isDirty && aboutUs?.id) {
+                                try {
+                                  await updateAboutUs.mutateAsync({
+                                    id: aboutUs.id,
+                                    payload: { title: watch('title'), description: watch('description'), image_url: watch('image_url'), image_alt: watch('image_alt'), is_active: watch('is_active'), order: watch('order') },
+                                  })
+                                  toast.success('Título actualizado')
+                                } catch (error) {
+                                  toast.error('Error al actualizar')
+                                }
+                              }
+                            }}
+                          >
+                            Guardar
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setIsEditingTitle(false)
+                              reset()
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-slate-50 dark:bg-slate-900">
+                        <span className="flex-1 text-sm">{watch('title') || 'Haz clic en el lápiz para editar'}</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setIsEditingTitle(true)}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    )}
+                    {errors.title && (
+                      <p className="text-xs text-red-500">{errors.title.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">
+                      Descripción ({watch('description')?.length || 0}/2000)
+                    </Label>
+                    {isEditingDescription ? (
+                      <div className="space-y-2">
+                        <textarea
+                          id="description"
+                          {...register('description')}
+                          className="w-full min-h-[200px] px-3 py-2 border rounded-md resize-y text-sm leading-relaxed focus:ring-2 focus:ring-primary"
+                          placeholder="Cuéntanos sobre tu negocio, tu historia, tus valores..."
+                          autoFocus
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={async () => {
+                              setIsEditingDescription(false)
+                              if (isDirty && aboutUs?.id) {
+                                try {
+                                  await updateAboutUs.mutateAsync({
+                                    id: aboutUs.id,
+                                    payload: { title: watch('title'), description: watch('description'), image_url: watch('image_url'), image_alt: watch('image_alt'), is_active: watch('is_active'), order: watch('order') },
+                                  })
+                                  toast.success('Descripción actualizada')
+                                } catch (error) {
+                                  toast.error('Error al actualizar')
+                                }
+                              }
+                            }}
+                          >
+                            Guardar
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setIsEditingDescription(false)
+                              reset()
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="px-3 py-2 border rounded-md bg-slate-50 dark:bg-slate-900 min-h-[100px] text-sm whitespace-pre-wrap">
+                          {watch('description') || 'Haz clic en el lápiz para editar'}
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setIsEditingDescription(true)}
+                          className="absolute top-2 right-2 h-7 w-7 p-0"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    )}
+                    {errors.description && (
+                      <p className="text-xs text-red-500">{errors.description.message}</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
-      </div>
-
-      {/* Sheet Editor */}
-      <AboutUsEditorSheet
-        isOpen={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        form={form}
-        onSubmit={onSubmit}
-        isSubmitting={updateAboutUs.isPending}
-        isSuccess={updateAboutUs.isSuccess}
-        isError={updateAboutUs.isError}
-        previewImageUrl={previewData?.image_url}
-        previewImageAlt={previewData?.image_alt}
-      />
+      </form>
     </div>
   )
 }

@@ -11,9 +11,10 @@ import { toast } from 'sonner'
 
 interface HeroImagesGridProps {
   images: HeroImage[]
+  isReordering: boolean
 }
 
-export function HeroImagesGrid({ images }: HeroImagesGridProps) {
+export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
@@ -101,85 +102,72 @@ export function HeroImagesGrid({ images }: HeroImagesGridProps) {
         {images.map((image, index) => (
           <div
             key={image.id}
-            draggable
-            onDragStart={() => handleDragStart(image.id)}
-            onDragOver={handleDragOver}
-            onDrop={() => handleDrop(image.id)}
-            className={`relative group rounded-lg overflow-hidden border-2 transition-all cursor-move ${
+            draggable={isReordering}
+            onDragStart={isReordering ? () => handleDragStart(image.id) : undefined}
+            onDragOver={isReordering ? handleDragOver : undefined}
+            onDrop={isReordering ? () => handleDrop(image.id) : undefined}
+            className={`relative group rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-md hover:shadow-xl transition-all ${
+              isReordering ? 'cursor-move' : ''
+            } ${
               draggedId === image.id
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 opacity-50'
-                : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'
+                ? 'ring-2 ring-blue-500 scale-95 opacity-50'
+                : 'hover:scale-[1.02]'
             }`}
           >
             {/* Imagen */}
-            <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800">
+            <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
               <img
                 src={image.thumbnail_url || image.url}
                 alt={image.alt || 'Hero image'}
                 className="w-full h-full object-cover"
               />
 
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    setEditingId(image.id)
-                    setIsSheetOpen(true)
-                  }}
-                  className="gap-1"
-                >
-                  <Pencil className="w-4 h-4" />
-                  Editar
-                </Button>
+              {/* Badge de Estado - Arriba derecha */}
+              <div className="absolute top-3 right-3">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                  image.is_visible
+                    ? 'bg-green-500 text-white'
+                    : 'bg-slate-400 text-white'
+                }`}>
+                  {image.is_visible ? 'Activo' : 'Inactivo'}
+                </span>
               </div>
             </div>
 
             {/* Info */}
-            <div className="p-3 space-y-2 bg-white dark:bg-slate-950">
+            <div className="p-5 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{image.title || 'Sin título'}</p>
-                  <p className="text-xs text-muted-foreground truncate">{image.alt || 'Sin descripción'}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <GripVertical className="w-4 h-4 text-slate-400" />
-                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                    #{index + 1}
-                  </span>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">{image.title || 'Sin título'}</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 min-h-[2.5rem]">{image.alt || 'Sin descripción'}</p>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex gap-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleToggleVisibility(image.id, image.is_visible)}
-                  className="flex-1"
-                >
-                  {image.is_visible ? (
-                    <Eye className="w-4 h-4" />
-                  ) : (
-                    <EyeOff className="w-4 h-4" />
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleDelete(image.id, image.title || 'imagen')}
-                  className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Metadata */}
-              <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-                <p>Dimensiones: {image.width}x{image.height}px</p>
-                <p>Subida: {new Date(image.uploaded_at).toLocaleDateString()}</p>
-              </div>
+              {!isReordering && (
+                <div className="flex gap-2 pt-3 border-t border-slate-200 dark:border-slate-700">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingId(image.id)
+                      setIsSheetOpen(true)
+                    }}
+                    className="flex-1 gap-1.5 text-xs"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDelete(image.id, image.title || 'imagen')}
+                    className="gap-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         ))}
