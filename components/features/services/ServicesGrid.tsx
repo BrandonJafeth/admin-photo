@@ -18,6 +18,7 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
 
   const deleteService = useDeleteService()
   const updateService = useUpdateService()
@@ -25,9 +26,21 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
 
   const editingService = services.find(svc => svc.id === editingId)
 
-  const handleDragStart = (id: string) => {
+  const handleDragStart = (id: string, e: React.DragEvent) => {
     if (!isReordering) return
     setDraggedId(id)
+    setDragPosition({ x: e.clientX, y: e.clientY })
+    
+    // Crear imagen fantasma invisible
+    const ghost = document.createElement('div')
+    ghost.style.opacity = '0'
+    document.body.appendChild(ghost)
+    e.dataTransfer.setDragImage(ghost, 0, 0)
+  }
+
+  const handleDrag = (e: React.DragEvent) => {
+    if (!isReordering || e.clientX === 0 || e.clientY === 0) return
+    setDragPosition({ x: e.clientX, y: e.clientY })
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -117,18 +130,54 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
     })
   }
 
+  const draggedService = services.find(svc => svc.id === draggedId)
+
   return (
     <>
+      {/* Elemento fantasma que sigue al cursor */}
+      {draggedId && draggedService && (
+        <div
+          className="fixed pointer-events-none z-[9999] opacity-90"
+          style={{
+            left: `${dragPosition.x}px`,
+            top: `${dragPosition.y}px`,
+            transform: 'translate(-50%, -50%)',
+            width: '300px',
+          }}
+        >
+          <div className="rounded-xl overflow-hidden bg-white border-2 border-blue-500 shadow-2xl">
+            <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+              {draggedService.image ? (
+                <img
+                  src={draggedService.image}
+                  alt={draggedService.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300">
+                  <span className="text-slate-500 text-sm">Sin imagen</span>
+                </div>
+              )}
+            </div>
+            <div className="p-3">
+              <h3 className="text-sm font-bold text-slate-900 truncate">{draggedService.title}</h3>
+              <p className="text-xs text-indigo-600 truncate">/{draggedService.slug}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {services.map((service, index) => (
           <div
             key={service.id}
             draggable={isReordering}
-            onDragStart={() => handleDragStart(service.id)}
+            onDragStart={(e) => handleDragStart(service.id, e)}
+            onDrag={handleDrag}
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(service.id)}
             className={`relative group rounded-xl overflow-hidden bg-white border border-slate-200 shadow-md hover:shadow-xl transition-all ${isReordering ? 'cursor-move' : 'cursor-default'} ${draggedId === service.id
-              ? 'ring-2 ring-blue-500 scale-95 opacity-50'
+              ? 'ring-4 ring-blue-500 shadow-2xl scale-105'
               : 'hover:scale-[1.02]'
               }`}
           >

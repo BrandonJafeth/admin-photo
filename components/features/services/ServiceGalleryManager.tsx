@@ -24,6 +24,7 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [draggedId, setDraggedId] = useState<string | null>(null)
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,8 +101,20 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
     })
   }
 
-  const handleDragStart = (id: string) => {
+  const handleDragStart = (id: string, e: React.DragEvent) => {
     setDraggedId(id)
+    setDragPosition({ x: e.clientX, y: e.clientY })
+    
+    // Crear imagen fantasma invisible
+    const ghost = document.createElement('div')
+    ghost.style.opacity = '0'
+    document.body.appendChild(ghost)
+    e.dataTransfer.setDragImage(ghost, 0, 0)
+  }
+
+  const handleDrag = (e: React.DragEvent) => {
+    if (e.clientX === 0 || e.clientY === 0) return
+    setDragPosition({ x: e.clientX, y: e.clientY })
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -216,15 +229,43 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
 
       {/* Images Grid */}
       {images.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {images.map((image) => (
+        <>
+          {/* Elemento fantasma que sigue al cursor */}
+          {draggedId && (() => {
+            const draggedImage = images.find(img => img.id === draggedId)
+            return draggedImage ? (
+              <div
+                className="fixed pointer-events-none z-[9999] opacity-90"
+                style={{
+                  left: `${dragPosition.x}px`,
+                  top: `${dragPosition.y}px`,
+                  transform: 'translate(-50%, -50%)',
+                  width: '150px',
+                }}
+              >
+                <div className="rounded-lg overflow-hidden border-2 border-blue-500 shadow-2xl bg-white">
+                  <div className="aspect-square overflow-hidden bg-slate-100">
+                    <img
+                      src={draggedImage.thumbnail_url || draggedImage.image_url}
+                      alt={draggedImage.alt || draggedImage.title || 'Imagen'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null
+          })()}
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {images.map((image) => (
             <Card
               key={image.id}
               draggable={!disabled}
-              onDragStart={() => handleDragStart(image.id)}
+              onDragStart={(e) => handleDragStart(image.id, e)}
+              onDrag={handleDrag}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(image.id)}
-              className={`relative group aspect-square overflow-hidden cursor-move hover:ring-2 hover:ring-primary transition-all ${draggedId === image.id ? 'opacity-50 ring-2 ring-primary' : ''
+              className={`relative group aspect-square overflow-hidden cursor-move hover:ring-2 hover:ring-primary transition-all ${draggedId === image.id ? 'ring-4 ring-primary shadow-2xl scale-110 z-50' : ''
                 } ${disabled ? 'cursor-not-allowed' : ''}`}
             >
               <div className="absolute top-2 left-2  bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
@@ -260,6 +301,7 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
             </Card>
           ))}
         </div>
+        </>
       ) : (
         <Card className="p-8 text-center border-dashed">
           <ImagePlus className="w-12 h-12 mx-auto text-muted-foreground mb-4" />

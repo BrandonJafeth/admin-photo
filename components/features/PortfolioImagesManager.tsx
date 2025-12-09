@@ -28,12 +28,25 @@ export default function PortfolioImagesManager() {
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
   const [isUploadSheetOpen, setIsUploadSheetOpen] = useState(false)
   const [isReordering, setIsReordering] = useState(false)
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
 
   const nextOrder = images.length > 0 ? Math.max(...images.map(img => img.order)) + 1 : 0
 
-  const handleDragStart = (id: string) => {
+  const handleDragStart = (id: string, e: React.DragEvent) => {
     if (!isReordering) return
     setDraggedId(id)
+    setDragPosition({ x: e.clientX, y: e.clientY })
+    
+    // Crear imagen fantasma invisible
+    const ghost = document.createElement('div')
+    ghost.style.opacity = '0'
+    document.body.appendChild(ghost)
+    e.dataTransfer.setDragImage(ghost, 0, 0)
+  }
+
+  const handleDrag = (e: React.DragEvent) => {
+    if (!isReordering || e.clientX === 0 || e.clientY === 0) return
+    setDragPosition({ x: e.clientX, y: e.clientY })
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -180,17 +193,48 @@ export default function PortfolioImagesManager() {
             <p className="text-slate-600">No hay imágenes en la galería. Sube una para comenzar.</p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {images.map((image, index) => (
+          <>
+            {/* Elemento fantasma que sigue al cursor */}
+            {draggedId && (() => {
+              const draggedImage = images.find(img => img.id === draggedId)
+              return draggedImage ? (
+                <div
+                  className="fixed pointer-events-none z-[9999] opacity-90"
+                  style={{
+                    left: `${dragPosition.x}px`,
+                    top: `${dragPosition.y}px`,
+                    transform: 'translate(-50%, -50%)',
+                    width: '200px',
+                  }}
+                >
+                  <div className="rounded-lg overflow-hidden border-2 border-blue-500 shadow-2xl bg-white">
+                    <div className="relative aspect-video overflow-hidden bg-slate-100">
+                      <img
+                        src={draggedImage.thumbnail_url || draggedImage.image_url}
+                        alt={draggedImage.alt || 'Imagen del portafolio'}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-2">
+                      <p className="text-xs font-medium text-slate-900 truncate">{draggedImage.title || 'Sin título'}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : null
+            })()}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {images.map((image, index) => (
               <div
                 key={image.id}
                 draggable={isReordering}
-                onDragStart={() => handleDragStart(image.id)}
+                onDragStart={(e) => handleDragStart(image.id, e)}
+                onDrag={handleDrag}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(image.id)}
                 className={`relative group rounded-lg overflow-hidden border-2 transition-all ${isReordering ? 'cursor-move' : 'cursor-default'} ${
                   draggedId === image.id
-                    ? 'border-blue-500 bg-blue-50 opacity-50'
+                    ? 'border-blue-500 ring-4 ring-blue-300 shadow-2xl scale-105 z-50'
                     : 'border-slate-200 hover:border-blue-400'
                 }`}
               >
@@ -293,6 +337,7 @@ export default function PortfolioImagesManager() {
               </div>
             ))}
           </div>
+          </>
         )}
       </div>
 
