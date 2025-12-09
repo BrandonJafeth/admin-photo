@@ -261,7 +261,7 @@ export function ServiceEditSheet({
               id="description"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              className="w-full min-h-[100px] px-3 py-2.5 border rounded-md resize-y text-sm leading-relaxed focus:ring-2 focus:ring-primary"
+              className="w-full min-h-[100px] px-3 py-2.5 bg-white border border-slate-200 shadow-sm rounded-md resize-y text-sm leading-relaxed focus:ring-2 focus:ring-primary"
               placeholder="Describe el servicio de manera clara y concisa..."
             />
             {description && description.length < 20 && (
