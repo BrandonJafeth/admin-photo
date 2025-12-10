@@ -243,7 +243,7 @@ export function PortfolioImageEditSheet({
             <p>Creado: {new Date(image.created_at).toLocaleDateString()}</p>
             <p>Actualizado: {new Date(image.updated_at).toLocaleDateString()}</p>
             <p>Estado: {image.is_visible ? 'Visible' : 'Oculto'}</p>
-            {image.is_featured && <p>Imagen destacada</p>}
+            {image.order < 7 && <p>Imagen destacada</p>}
             {image.service_id && (
               <p>
                 Vinculada a servicio: {services.find(s => s.id === image.service_id)?.title || image.service_id}

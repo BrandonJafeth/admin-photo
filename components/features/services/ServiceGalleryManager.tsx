@@ -87,30 +87,29 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
     }
   }
 
-  const handleDelete = async (id: string) => {
-    toast.warning('¿Eliminar imagen?', {
-      description: 'Esta acción no se puede deshacer.',
-      action: {
-        label: 'Eliminar',
-        onClick: async () => {
-          try {
-            await deleteImage.mutateAsync(id)
-            toast.success('Imagen eliminada', {
-              description: 'La imagen se eliminó correctamente',
-            })
-          } catch (error) {
-            console.error('Error al eliminar imagen:', error)
-            toast.error('Error al eliminar', {
-              description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
-            })
-          }
-        },
-      },
-      cancel: {
-        label: 'Cancelar',
-        onClick: () => { },
-      },
+  const confirmDelete = async () => {
+    if (!imageToDelete) return
+
+    const loadingToast = toast.loading('Eliminando imagen...', {
+      description: 'Por favor espera',
     })
+
+    try {
+      await deleteImage.mutateAsync(imageToDelete)
+      toast.dismiss(loadingToast)
+      toast.success('Imagen eliminada', {
+        description: 'La imagen se eliminó correctamente',
+      })
+    } catch (error) {
+      console.error('Error al eliminar:', error)
+      toast.dismiss(loadingToast)
+      toast.error('Error al eliminar', {
+        description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
+      })
+    } finally {
+      setDeleteDialogOpen(false)
+      setImageToDelete(null)
+    }
   }
 
   const handleDragStart = (id: string, e: React.DragEvent) => {
@@ -302,7 +301,10 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
                   type="button"
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDelete(image.id)}
+                  onClick={() => {
+                    setImageToDelete(image.id)
+                    setDeleteDialogOpen(true)
+                  }}
                   disabled={disabled || deleteImage.isPending}
                   className="gap-2"
                 >
