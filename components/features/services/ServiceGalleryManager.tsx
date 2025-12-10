@@ -9,6 +9,16 @@ import { usePortfolioImagesByServiceId } from '@/hooks/usePortfolioImages'
 import { useCreateManyPortfolioImages, useDeletePortfolioImage, useUpdatePortfolioImagesOrder } from '@/hooks/usePortfolioImages'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
 import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface ServiceGalleryManagerProps {
   serviceId: string
@@ -25,6 +35,8 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [imageToDelete, setImageToDelete] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -319,6 +331,27 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
           </span>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar imagen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. La imagen será eliminada permanentemente de la galería del servicio.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

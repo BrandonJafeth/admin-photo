@@ -7,6 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Trash2, Eye, EyeOff, GripVertical, Pencil } from 'lucide-react'
 import { ServiceEditSheet } from './ServiceEditSheet'
 import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 
 interface ServicesGridProps {
@@ -19,6 +29,8 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [serviceToDelete, setServiceToDelete] = useState<{ id: string; title: string } | null>(null)
 
   const deleteService = useDeleteService()
   const updateService = useUpdateService()
@@ -108,37 +120,34 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
     }
   }
 
-  const handleDelete = async (id: string, title: string) => {
-    toast.warning('¿Eliminar servicio?', {
-      description: `Estás a punto de eliminar "${title}". Esta acción no se puede deshacer.`,
-      action: {
-        label: 'Eliminar',
-        onClick: async () => {
-          // Mostrar toast de loading
-          const loadingToast = toast.loading('Eliminando servicio...', {
-            description: 'Por favor espera',
-          })
+  const handleDelete = (id: string, title: string) => {
+    setServiceToDelete({ id, title })
+    setDeleteDialogOpen(true)
+  }
 
-          try {
-            await deleteService.mutateAsync(id)
-            toast.dismiss(loadingToast)
-            toast.success('Servicio eliminado', {
-              description: 'El servicio se eliminó correctamente',
-            })
-          } catch (error) {
-            console.error('Error al eliminar:', error)
-            toast.dismiss(loadingToast)
-            toast.error('Error al eliminar', {
-              description: 'No se pudo eliminar el servicio. Intenta nuevamente.',
-            })
-          }
-        },
-      },
-      cancel: {
-        label: 'Cancelar',
-        onClick: () => { },
-      },
-    })
+  const confirmDelete = async () => {
+    if (!serviceToDelete) return
+
+    const loadingToast = toast.loading('Eliminando servicio...', {
+      description: 'Por favor espera',
+    }) 
+
+    try {
+      await deleteService.mutateAsync(serviceToDelete.id)
+      toast.dismiss(loadingToast)
+      toast.success('Servicio eliminado', {
+        description: 'El servicio se eliminó correctamente',
+      })
+    } catch (error) {
+      console.error('Error al eliminar:', error)
+      toast.dismiss(loadingToast)
+      toast.error('Error al eliminar', {
+        description: 'No se pudo eliminar el servicio. Intenta nuevamente.',
+      })
+    } finally {
+      setDeleteDialogOpen(false)
+      setServiceToDelete(null)
+    }
   }
 
   const draggedService = services.find(svc => svc.id === draggedId)
@@ -307,6 +316,27 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar servicio?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás a punto de eliminar "{serviceToDelete?.title}". Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

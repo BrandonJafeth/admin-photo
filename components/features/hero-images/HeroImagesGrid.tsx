@@ -7,6 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Trash2, Eye, EyeOff, GripVertical, Pencil } from 'lucide-react'
 import { HeroImageEditSheet } from './HeroImageEditSheet'
 import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 
 interface HeroImagesGridProps {
@@ -19,6 +29,8 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [imageToDelete, setImageToDelete] = useState<{ id: string; title: string } | null>(null)
 
   const deleteImage = useDeleteHeroImage()
   const updateImage = useUpdateHeroImage()
@@ -94,30 +106,34 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
     }
   }
 
-  const handleDelete = async (id: string, title: string) => {
-    toast.warning('¿Eliminar imagen?', {
-      description: `Estás a punto de eliminar "${title || 'esta imagen'}". Esta acción no se puede deshacer.`,
-      action: {
-        label: 'Eliminar',
-        onClick: async () => {
-          try {
-            await deleteImage.mutateAsync(id)
-            toast.success('Imagen eliminada', {
-              description: 'La imagen se eliminó correctamente',
-            })
-          } catch (error) {
-            console.error('Error al eliminar:', error)
-            toast.error('Error al eliminar', {
-              description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
-            })
-          }
-        },
-      },
-      cancel: {
-        label: 'Cancelar',
-        onClick: () => {},
-      },
+  const handleDelete = (id: string, title: string) => {
+    setImageToDelete({ id, title })
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!imageToDelete) return
+
+    const loadingToast = toast.loading('Eliminando imagen...', {
+      description: 'Por favor espera',
     })
+
+    try {
+      await deleteImage.mutateAsync(imageToDelete.id)
+      toast.dismiss(loadingToast)
+      toast.success('Imagen eliminada', {
+        description: 'La imagen se eliminó correctamente',
+      })
+    } catch (error) {
+      console.error('Error al eliminar:', error)
+      toast.dismiss(loadingToast)
+      toast.error('Error al eliminar', {
+        description: 'No se pudo eliminar la imagen. Intenta nuevamente.',
+      })
+    } finally {
+      setDeleteDialogOpen(false)
+      setImageToDelete(null)
+    }
   }
 
   const draggedImage = images.find(img => img.id === draggedId)
@@ -270,6 +286,27 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
           }}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar imagen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás a punto de eliminar "{imageToDelete?.title || 'esta imagen'}". Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
