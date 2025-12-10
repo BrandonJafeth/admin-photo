@@ -10,8 +10,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil, ArrowDownUp, X } from 'lucide-react'
 import { PortfolioImageEditSheet } from './portfolio-images/PortfolioImageEditSheet'
 import { PortfolioImageUploadSheet } from './portfolio-images/PortfolioImageUploadSheet'
@@ -299,7 +297,7 @@ export default function PortfolioImagesManager() {
                     </div>
                   )}
 
-                  {image.is_featured && (
+                  {index < 7 && (
                     <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                       Destacada
                     </div>
