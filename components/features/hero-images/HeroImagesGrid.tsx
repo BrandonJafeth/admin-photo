@@ -18,6 +18,7 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
 
   const deleteImage = useDeleteHeroImage()
   const updateImage = useUpdateHeroImage()
@@ -25,8 +26,25 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
 
   const editingImage = images.find(img => img.id === editingId)
 
-  const handleDragStart = (id: string) => {
+  const handleDragStart = (id: string, e: React.DragEvent) => {
     setDraggedId(id)
+    setDragPosition({ x: e.clientX, y: e.clientY })
+    
+    // Crear imagen fantasma invisible
+    const ghost = document.createElement('div')
+    ghost.style.opacity = '0'
+    document.body.appendChild(ghost)
+    e.dataTransfer.setDragImage(ghost, 0, 0)
+  }
+
+  const handleDrag = (e: React.DragEvent) => {
+    if (e.clientX === 0 || e.clientY === 0) return
+    setDragPosition({ x: e.clientX, y: e.clientY })
+  }
+
+  const handleDragEnd = () => {
+    // Limpiar el estado cuando termina el drag
+    setDraggedId(null)
   }
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -34,12 +52,18 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
   }
 
   const handleDrop = async (targetId: string) => {
-    if (!draggedId || draggedId === targetId) return
+    if (!draggedId || draggedId === targetId) {
+      setDraggedId(null)
+      return
+    }
 
     const draggedIndex = images.findIndex(img => img.id === draggedId)
     const targetIndex = images.findIndex(img => img.id === targetId)
 
-    if (draggedIndex === -1 || targetIndex === -1) return
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedId(null)
+      return
+    }
 
     const newImages = [...images]
     const [draggedImage] = newImages.splice(draggedIndex, 1)
@@ -96,21 +120,51 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
     })
   }
 
+  const draggedImage = images.find(img => img.id === draggedId)
+
   return (
     <>
+      {/* Elemento fantasma que sigue al cursor */}
+      {draggedId && draggedImage && (
+        <div
+          className="fixed pointer-events-none z-[9999] opacity-90"
+          style={{
+            left: `${dragPosition.x}px`,
+            top: `${dragPosition.y}px`,
+            transform: 'translate(-50%, -50%)',
+            width: '250px',
+          }}
+        >
+          <div className="rounded-xl overflow-hidden bg-white border-2 border-blue-500 shadow-2xl">
+            <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+              <img
+                src={draggedImage.thumbnail_url || draggedImage.url}
+                alt={draggedImage.alt || 'Hero image'}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="p-2">
+              <h3 className="text-xs font-bold text-slate-900 truncate">{draggedImage.title || 'Sin título'}</h3>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
         {images.map((image, index) => (
           <div
             key={image.id}
             draggable={isReordering}
-            onDragStart={isReordering ? () => handleDragStart(image.id) : undefined}
+            onDragStart={isReordering ? (e) => handleDragStart(image.id, e) : undefined}
+            onDrag={isReordering ? handleDrag : undefined}
             onDragOver={isReordering ? handleDragOver : undefined}
             onDrop={isReordering ? () => handleDrop(image.id) : undefined}
+            onDragEnd={isReordering ? handleDragEnd : undefined}
             className={`relative group rounded-xl overflow-hidden bg-white border border-slate-200 shadow-md hover:shadow-xl transition-all ${
               isReordering ? 'cursor-move' : ''
             } ${
               draggedId === image.id
-                ? 'ring-2 ring-blue-500 scale-95 opacity-50'
+                ? 'ring-4 ring-blue-500 shadow-2xl scale-105'
                 : 'hover:scale-[1.02]'
             }`}
           >
@@ -122,7 +176,15 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
                 className="w-full h-full object-cover"
               />
 
+              {/* Drag Handle - Solo visible en modo reordering */}
+              {isReordering && (
+                <div className="absolute top-2 left-2 bg-blue-600 text-white p-2 rounded cursor-move shadow-lg">
+                  <GripVertical className="w-4 h-4" />
+                </div>
+              )}
+
               {/* Badge de Estado - Arriba derecha */}
+              {!isReordering && (
               <div className="absolute top-3 right-3">
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                   image.is_visible
@@ -132,6 +194,7 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
                   {image.is_visible ? 'Activo' : 'Inactivo'}
                 </span>
               </div>
+              )}
             </div>
 
             {/* Info */}
@@ -141,11 +204,32 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
                   <h3 className="text-base font-bold text-slate-900 mb-1">{image.title || 'Sin título'}</h3>
                   <p className="text-sm text-slate-600 line-clamp-2 min-h-[2.5rem]">{image.alt || 'Sin descripción'}</p>
                 </div>
+                {isReordering && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                      #{index + 1}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Actions */}
               {!isReordering && (
                 <div className="flex gap-2 pt-3 border-t border-slate-200">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleToggleVisibility(image.id, image.is_visible)}
+                    className="flex-1 gap-1.5 text-xs"
+                    title={image.is_visible ? 'Ocultar' : 'Mostrar'}
+                  >
+                    {image.is_visible ? (
+                      <Eye className="w-3.5 h-3.5" />
+                    ) : (
+                      <EyeOff className="w-3.5 h-3.5" />
+                    )}
+                    Ver
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -160,9 +244,10 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="destructive"
                     onClick={() => handleDelete(image.id, image.title || 'imagen')}
-                    className="gap-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200"
+                    className="gap-1.5 text-xs"
+                    title="Eliminar"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>
