@@ -54,13 +54,24 @@ export default function PortfolioImagesManager() {
     e.preventDefault()
   }
 
+  const handleDragEnd = () => {
+    // Limpiar el estado cuando termina el drag, sin importar si se hizo drop o no
+    setDraggedId(null)
+  }
+
   const handleDrop = async (targetId: string) => {
-    if (!isReordering || !draggedId || draggedId === targetId) return
+    if (!isReordering || !draggedId || draggedId === targetId) {
+      setDraggedId(null)
+      return
+    }
 
     const draggedIndex = images.findIndex(img => img.id === draggedId)
     const targetIndex = images.findIndex(img => img.id === targetId)
 
-    if (draggedIndex === -1 || targetIndex === -1) return
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedId(null)
+      return
+    }
 
     // Crear nuevo array con orden actualizado
     const newImages = [...images]
@@ -232,6 +243,7 @@ export default function PortfolioImagesManager() {
                 onDrag={handleDrag}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(image.id)}
+                onDragEnd={handleDragEnd}
                 className={`relative group rounded-lg overflow-hidden border-2 transition-all ${isReordering ? 'cursor-move' : 'cursor-default'} ${
                   draggedId === image.id
                     ? 'border-blue-500 ring-4 ring-blue-300 shadow-2xl scale-105 z-50'

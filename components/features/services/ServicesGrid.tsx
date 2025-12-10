@@ -48,13 +48,24 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
     e.preventDefault()
   }
 
+  const handleDragEnd = () => {
+    // Limpiar el estado cuando termina el drag, sin importar si se hizo drop o no
+    setDraggedId(null)
+  }
+
   const handleDrop = async (targetId: string) => {
-    if (!isReordering || !draggedId || draggedId === targetId) return
+    if (!isReordering || !draggedId || draggedId === targetId) {
+      setDraggedId(null)
+      return
+    }
 
     const draggedIndex = services.findIndex(svc => svc.id === draggedId)
     const targetIndex = services.findIndex(svc => svc.id === targetId)
 
-    if (draggedIndex === -1 || targetIndex === -1) return
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedId(null)
+      return
+    }
 
     const newServices = [...services]
     const [draggedService] = newServices.splice(draggedIndex, 1)
@@ -176,6 +187,7 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
             onDrag={handleDrag}
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(service.id)}
+            onDragEnd={handleDragEnd}
             className={`relative group rounded-xl overflow-hidden bg-white border border-slate-200 shadow-md hover:shadow-xl transition-all ${isReordering ? 'cursor-move' : 'cursor-default'} ${draggedId === service.id
               ? 'ring-4 ring-blue-500 shadow-2xl scale-105'
               : 'hover:scale-[1.02]'
