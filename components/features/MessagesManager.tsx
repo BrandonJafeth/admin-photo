@@ -249,8 +249,8 @@ export default function MessagesManager() {
 
             <div className="flex flex-col gap-4 pt-4">
         {/* Info row - Left aligned */}
-        <div className="flex items-center justify-between px-2">
-          <p className="text-sm text-slate-600">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+          <p className="text-sm text-slate-600 text-center sm:text-left">
             Mostrando{' '}
             <span className="font-medium text-slate-900">
               {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
