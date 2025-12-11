@@ -15,3 +15,9 @@ export async function signIn({ email, password }: SignInPayload): Promise<unknow
 
   return data
 }
+
+export async function signOut(): Promise<void> {
+  const { error } = await supabaseClient.auth.signOut()
+  
+  if (error) throw error
+}

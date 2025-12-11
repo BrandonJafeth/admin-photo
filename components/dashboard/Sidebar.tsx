@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import {
   Sidebar as AnimateSidebar,
   SidebarContent,
@@ -12,6 +13,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/animate-ui/components/radix/sidebar'
+
+const UserMenu = dynamic(() => import('./UserMenu'), { ssr: false })
 
 export default function Sidebar() {
   return (
@@ -57,7 +60,10 @@ export default function Sidebar() {
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-slate-200 text-xs text-slate-600 !bg-white">v1.0</SidebarFooter>
+      <SidebarFooter className="p-4 border-t border-slate-200 !bg-white">
+        <UserMenu />
+        <p className="text-xs text-slate-600 text-center mt-2">v1.0</p>
+      </SidebarFooter>
     </AnimateSidebar>
   )
 }
