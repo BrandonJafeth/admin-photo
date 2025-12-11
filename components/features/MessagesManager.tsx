@@ -158,8 +158,8 @@ export default function MessagesManager() {
   return (
     <div className="h-full overflow-hidden">
       <div className="h-full overflow-y-auto bg-[#F5F5F7]">
-        <div className="p-6">
-          <div className="max-w-[1400px] mx-auto space-y-6 p-6 bg-white rounded-lg shadow">
+        <div className="p-4 md:p-6">
+          <div className="max-w-[1400px] mx-auto space-y-6 p-4 md:p-6 bg-white rounded-lg shadow">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900">Mensajes</h1>
@@ -201,7 +201,7 @@ export default function MessagesManager() {
               </Select>
             </div>
 
-            <div className="border border-slate-200 rounded-lg bg-white shadow-sm overflow-hidden">
+            <div className="border border-slate-200 rounded-lg bg-white shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map(headerGroup => (

@@ -170,7 +170,7 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-white p-4 md:p-6 rounded-lg shadow-sm border border-slate-200">
         {images.map((image, index) => (
           <div
             key={image.id}

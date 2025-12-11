@@ -18,7 +18,7 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/components/animate-ui/components/radix/sheet';
+} from '@/components/ui/sheet';
 import {
   TooltipProvider,
   Tooltip,

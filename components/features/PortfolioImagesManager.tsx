@@ -166,8 +166,8 @@ export default function PortfolioImagesManager() {
   return (
     <div className="space-y-6">
       {/* Upload Section */}
-      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-        <div className="flex items-start gap-4">
+      <div className="bg-white rounded-xl p-4 md:p-6 border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex-1">
             <h3 className="font-semibold text-lg text-slate-900 mb-1">Subir Nueva Imagen</h3>
             <p className="text-sm text-slate-600">
@@ -176,7 +176,7 @@ export default function PortfolioImagesManager() {
           </div>
           <Button
             onClick={() => setIsUploadSheetOpen(true)}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto"
           >
             <Upload className="w-4 h-4" />
             Nueva Imagen
@@ -185,9 +185,9 @@ export default function PortfolioImagesManager() {
       </div>
 
       {/* Images Grid */}
-      <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
+      <div className="bg-white rounded-xl p-4 md:p-6 border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3 flex-wrap">
             <h3 className="font-semibold text-lg text-slate-900">Galería de Imágenes ({images.length})</h3>
             {isReordering && (
               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium flex items-center gap-1">
@@ -196,11 +196,12 @@ export default function PortfolioImagesManager() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               variant={isReordering ? "default" : "outline"}
               size="sm"
               onClick={() => setIsReordering(!isReordering)}
+              className="w-full sm:w-auto"
             >
               {isReordering ? (
                 <>
@@ -252,7 +253,7 @@ export default function PortfolioImagesManager() {
               ) : null
             })()}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {images.map((image, index) => (
               <div
                 key={image.id}

@@ -34,17 +34,17 @@ export default function ServicesManager() {
         <div className="p-6">
           <div className="max-w-[1400px] mx-auto">
           {/* Header de Sección con Botones */}
-          <div className="flex items-start justify-between gap-4 mb-6 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 bg-white p-4 md:p-6 rounded-lg shadow-sm border border-slate-200">
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-slate-900 mb-2">Gestión de Servicios</h1>
               <p className="text-sm text-slate-600">Administra los servicios fotográficos que ofreces</p>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <Button
                 variant={isReordering ? 'secondary' : 'outline'}
                 onClick={() => setIsReordering(!isReordering)}
-                className="gap-2"
+                className="gap-2 flex-1 sm:flex-none"
               >
                 {isReordering ? (
                   <>
@@ -68,7 +68,7 @@ export default function ServicesManager() {
               <Button
                 onClick={() => setIsCreateSheetOpen(true)}
                 disabled={isReordering}
-                className="gap-2"
+                className="gap-2 flex-1 sm:flex-none"
               >
                 <Plus className="w-4 h-4" />
                 Agregar Servicio

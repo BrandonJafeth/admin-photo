@@ -191,7 +191,7 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {services.map((service, index) => (
           <div
             key={service.id}

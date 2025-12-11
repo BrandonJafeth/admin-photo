@@ -148,7 +148,7 @@ export default function AboutUsManager() {
     return (
       <div className="h-full overflow-hidden">
         <div className="h-full overflow-y-auto bg-[#F5F5F7]">
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             <div className="max-w-[1400px] mx-auto">
               <Card className="p-6">
                 <p className="text-center text-slate-600">
@@ -165,7 +165,7 @@ export default function AboutUsManager() {
   return (
     <div className="h-full overflow-hidden">
       <div className="h-full overflow-y-auto bg-[#F5F5F7]">
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           <div className="max-w-[1400px] mx-auto">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Header de Sección */}

@@ -31,12 +31,12 @@ export default function HeroImagesManager() {
   return (
     <div className="h-full overflow-hidden">
       <div className="h-full overflow-y-auto bg-[#F5F5F7]">
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           <div className="max-w-[1400px] mx-auto">
         {/* Header de Sección con Botones */}
-        <div className="flex items-start justify-between gap-4 mb-6 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 bg-white p-4 md:p-6 rounded-lg shadow-sm border border-slate-200">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
               <h1 className="text-2xl font-bold text-slate-900">Imágenes Hero</h1>
               {isReordering && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -47,11 +47,11 @@ export default function HeroImagesManager() {
             <p className="text-sm text-slate-600">Gestiona las imágenes principales del sitio</p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Button
               variant={isReordering ? "default" : "outline"}
               onClick={() => setIsReordering(!isReordering)}
-              className="gap-2"
+              className="gap-2 flex-1 sm:flex-none"
             >
               {isReordering ? (
                 <>
@@ -68,7 +68,7 @@ export default function HeroImagesManager() {
             <Button
               onClick={() => setIsUploadSheetOpen(true)}
               disabled={isReordering}
-              className="gap-2"
+              className="gap-2 flex-1 sm:flex-none"
             >
               <Plus className="w-4 h-4" />
               Agregar Imagen

@@ -32,7 +32,7 @@ export default function UserMenu() {
         <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
           <User className="w-5 h-5 text-slate-600" />
         </div>
-        <div className="text-left hidden md:block">
+        <div className="text-left block">
           <p className="text-sm font-medium text-slate-900">Admin</p>
           <p className="text-xs text-slate-500">admin@gadeaiso.com</p>
         </div>
