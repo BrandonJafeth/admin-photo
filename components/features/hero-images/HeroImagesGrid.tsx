@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { HeroImage } from '@/services/heroImages.service'
 import { useDeleteHeroImage, useUpdateHeroImage, useUpdateHeroImagesOrder } from '@/hooks/useHeroImages'
 import { Button } from '@/components/ui/button'
-import { Trash2, Eye, EyeOff, GripVertical, Pencil } from 'lucide-react'
+import { Trash2, Eye, EyeOff, GripVertical, Pencil, Loader2 } from 'lucide-react'
 import { HeroImageEditSheet } from './HeroImageEditSheet'
 import { toast } from 'sonner'
 import {
@@ -26,6 +26,7 @@ interface HeroImagesGridProps {
 
 export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
@@ -96,6 +97,7 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
   }
 
   const handleToggleVisibility = async (id: string, isVisible: boolean) => {
+    setTogglingId(id)
     try {
       await updateImage.mutateAsync({
         id,
@@ -103,6 +105,8 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
       })
     } catch (error) {
       console.error('Error al actualizar visibilidad:', error)
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -238,8 +242,11 @@ export function HeroImagesGrid({ images, isReordering }: HeroImagesGridProps) {
                     onClick={() => handleToggleVisibility(image.id, image.is_visible)}
                     className="flex-1 gap-1.5 text-xs"
                     title={image.is_visible ? 'Ocultar' : 'Mostrar'}
+                    disabled={togglingId === image.id}
                   >
-                    {image.is_visible ? (
+                    {togglingId === image.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : image.is_visible ? (
                       <Eye className="w-3.5 h-3.5" />
                     ) : (
                       <EyeOff className="w-3.5 h-3.5" />

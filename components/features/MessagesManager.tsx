@@ -44,7 +44,7 @@ export default function MessagesManager() {
   })
 
   const { data: messages = [], isLoading, refetch } = useQuery({
-    queryKey: ['contact-messages' + filterStatus],
+    queryKey: ['contact-messages'],
     queryFn: () => ContactMessagesService.getAll(),
     refetchInterval: 30000,
     refetchOnWindowFocus: true,
@@ -155,15 +155,6 @@ export default function MessagesManager() {
     getSortedRowModel: getSortedRowModel(),
   })
 
-  // Apply status filter
-  useEffect(() => {
-    if (filterStatus !== 'all') {
-      table.getColumn('status')?.setFilterValue(filterStatus)
-    } else {
-      table.getColumn('status')?.setFilterValue(undefined)
-    }
-  }, [filterStatus, table])
-
   return (
     <div className="h-full overflow-hidden">
       <div className="h-full overflow-y-auto bg-[#F5F5F7]">
@@ -190,7 +181,13 @@ export default function MessagesManager() {
                   onChange={(e) => setGlobalFilter(e.target.value)}
                 />
               </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <Select 
+                value={filterStatus} 
+                onValueChange={(value) => {
+                  setFilterStatus(value)
+                  table.getColumn('status')?.setFilterValue(value === 'all' ? undefined : value)
+                }}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filtrar por estado" />
                 </SelectTrigger>

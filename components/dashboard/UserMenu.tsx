@@ -44,7 +44,7 @@ export default function UserMenu() {
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+          <div className="absolute left-0 bottom-full mb-2 w-56 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
             <button
               onClick={() => {
                 setIsOpen(false)

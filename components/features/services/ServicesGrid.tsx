@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Service } from '@/services/services.service'
 import { useDeleteService, useUpdateService, useUpdateServicesOrder } from '@/hooks/useServices'
 import { Button } from '@/components/ui/button'
-import { Trash2, Eye, EyeOff, GripVertical, Pencil } from 'lucide-react'
+import { Trash2, Eye, EyeOff, GripVertical, Pencil, Loader2 } from 'lucide-react'
 import { ServiceEditSheet } from './ServiceEditSheet'
 import { toast } from 'sonner'
 import {
@@ -31,6 +31,7 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [serviceToDelete, setServiceToDelete] = useState<{ id: string; title: string } | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   const deleteService = useDeleteService()
   const updateService = useUpdateService()
@@ -104,6 +105,7 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
   }
 
   const handleToggleVisibility = async (id: string, isVisible: boolean) => {
+    setTogglingId(id)
     try {
       await updateService.mutateAsync({
         id,
@@ -117,6 +119,8 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
       toast.error('Error al cambiar visibilidad', {
         description: 'No se pudo actualizar la visibilidad. Intenta nuevamente.',
       })
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -266,13 +270,16 @@ export function ServicesGrid({ services, isReordering }: ServicesGridProps) {
                     onClick={() => handleToggleVisibility(service.id, service.is_active)}
                     className="flex-1 gap-1.5 text-xs"
                     title={service.is_active ? 'Ocultar' : 'Mostrar'}
+                    disabled={togglingId === service.id}
                   >
-                    {service.is_active ? (
+                    {togglingId === service.id ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : service.is_active ? (
                       <Eye className="w-3.5 h-3.5" />
                     ) : (
                       <EyeOff className="w-3.5 h-3.5" />
                     )}
-                    Ver
+                    {togglingId === service.id ? '...' : 'Ver'}
                   </Button>
                   <Button
                     size="sm"

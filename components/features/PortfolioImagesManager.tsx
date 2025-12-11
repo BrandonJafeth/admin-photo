@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil, ArrowDownUp, X } from 'lucide-react'
+import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil, ArrowDownUp, X, Loader2 } from 'lucide-react'
 import { PortfolioImageEditSheet } from './portfolio-images/PortfolioImageEditSheet'
 import { PortfolioImageUploadSheet } from './portfolio-images/PortfolioImageUploadSheet'
 import { toast } from 'sonner'
@@ -39,6 +39,7 @@ export default function PortfolioImagesManager() {
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [imageToDelete, setImageToDelete] = useState<string | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   const nextOrder = images.length > 0 ? Math.max(...images.map(img => img.order)) + 1 : 0
 
@@ -104,6 +105,7 @@ export default function PortfolioImagesManager() {
   }
 
   const handleToggleVisibility = async (id: string, isVisible: boolean) => {
+    setTogglingId(id)
     try {
       await updateImage.mutateAsync({
         id,
@@ -111,6 +113,8 @@ export default function PortfolioImagesManager() {
       })
     } catch (error) {
       console.error('Error al actualizar visibilidad:', error)
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -334,8 +338,11 @@ export default function PortfolioImagesManager() {
                         variant="outline"
                         onClick={() => handleToggleVisibility(image.id, image.is_visible)}
                         className="flex-1"
+                        disabled={togglingId === image.id}
                       >
-                        {image.is_visible ? (
+                        {togglingId === image.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : image.is_visible ? (
                           <Eye className="w-4 h-4" />
                         ) : (
                           <EyeOff className="w-4 h-4" />

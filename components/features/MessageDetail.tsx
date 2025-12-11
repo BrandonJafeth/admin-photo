@@ -154,7 +154,11 @@ export default function MessageDetail({ messageId }: MessageDetailProps) {
                 disabled={updateStatusMutation.isPending || message.status === 'read'}
                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
               >
-                <CheckCircle className="mr-2 h-4 w-4" />
+                {updateStatusMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                )}
                 Marcar Leído
               </Button>
               <Button
@@ -163,7 +167,11 @@ export default function MessageDetail({ messageId }: MessageDetailProps) {
                 disabled={updateStatusMutation.isPending || message.status === 'responded'}
                 className="text-green-600 hover:text-green-700 hover:bg-green-50"
               >
-                <MessageSquare className="mr-2 h-4 w-4" />
+                {updateStatusMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                )}
                 Marcar Respondido
               </Button>
               <Button
@@ -171,7 +179,11 @@ export default function MessageDetail({ messageId }: MessageDetailProps) {
                 disabled={updateStatusMutation.isPending || message.status === 'archived'}
                 className="bg-gray-600 hover:bg-gray-700 text-white"
               >
-                <Archive className="mr-2 h-4 w-4" />
+                {updateStatusMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Archive className="mr-2 h-4 w-4" />
+                )}
                 Archivar
               </Button>
             </CardFooter>

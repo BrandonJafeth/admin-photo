@@ -271,6 +271,7 @@ export default function AboutUsManager() {
                           <Button
                             type="button"
                             size="sm"
+                            disabled={updateAboutUs.isPending}
                             onClick={async () => {
                               setIsEditingTitle(false)
                               if (isDirty && aboutUs?.id) {
@@ -286,7 +287,11 @@ export default function AboutUsManager() {
                               }
                             }}
                           >
-                            Guardar
+                            {updateAboutUs.isPending ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              'Guardar'
+                            )}
                           </Button>
                           <Button
                             type="button"
@@ -337,6 +342,7 @@ export default function AboutUsManager() {
                           <Button
                             type="button"
                             size="sm"
+                            disabled={updateAboutUs.isPending}
                             onClick={async () => {
                               setIsEditingDescription(false)
                               if (isDirty && aboutUs?.id) {
@@ -352,7 +358,11 @@ export default function AboutUsManager() {
                               }
                             }}
                           >
-                            Guardar
+                            {updateAboutUs.isPending ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              'Guardar'
+                            )}
                           </Button>
                           <Button
                             type="button"
