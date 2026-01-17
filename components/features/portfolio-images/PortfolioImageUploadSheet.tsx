@@ -53,6 +53,7 @@ export function PortfolioImageUploadSheet({
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
   const { data: categories = [], isLoading: categoriesLoading } = useImageCategories()
   const { data: services = [], isLoading: servicesLoading } = useServices()
@@ -78,10 +79,7 @@ export function PortfolioImageUploadSheet({
   const categoryId = watch('category_id')
   const serviceId = watch('service_id')
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const processFile = (file: File) => {
     // Validar tipo de archivo
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     if (!validTypes.includes(file.type)) {
@@ -107,6 +105,35 @@ export function PortfolioImageUploadSheet({
       setPreviewUrl(reader.result as string)
     }
     reader.readAsDataURL(file)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    processFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      processFile(file)
+    }
   }
 
   const handleRemoveFile = () => {
@@ -189,7 +216,14 @@ export function PortfolioImageUploadSheet({
             </Label>
 
             {!selectedFile ? (
-              <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                  isDragging ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-400'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 <input
                   type="file"
                   accept="image/*"
@@ -197,9 +231,11 @@ export function PortfolioImageUploadSheet({
                   className="hidden"
                   id="file-upload"
                 />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-                  <p className="text-sm font-medium mb-1">Click para seleccionar imagen</p>
+                <label htmlFor="file-upload" className="cursor-pointer w-full h-full block">
+                  <Upload className={`w-12 h-12 mx-auto mb-4 ${isDragging ? 'text-blue-500' : 'text-slate-400'}`} />
+                  <p className="text-sm font-medium mb-1">
+                    {isDragging ? 'Suelta la imagen aquí' : 'Click para seleccionar o arrastra una imagen'}
+                  </p>
                   <p className="text-xs text-slate-500">
                     JPEG, PNG, WebP, GIF • Máximo 5MB
                   </p>

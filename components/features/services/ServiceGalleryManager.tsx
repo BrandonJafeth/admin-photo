@@ -32,6 +32,7 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
   const updateOrder = useUpdatePortfolioImagesOrder()
 
   const [isUploading, setIsUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
@@ -39,8 +40,7 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
   const [imageToDelete, setImageToDelete] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
+  const processFiles = async (files: File[]) => {
     if (files.length === 0) return
 
     // Validar todas las imágenes
@@ -78,13 +78,40 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
+      
+      toast.success('Imágenes subidas correctamente')
     } catch (error) {
-      setUploadError(
-        error instanceof Error ? error.message : 'Error al subir las imágenes'
-      )
+      console.error('Error al subir imágenes:', error)
+      setUploadError(error instanceof Error ? error.message : 'Error al subir las imágenes')
     } finally {
       setIsUploading(false)
     }
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    processFiles(files)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const files = Array.from(e.dataTransfer.files || [])
+    processFiles(files)
   }
 
   const confirmDelete = async () => {
@@ -185,7 +212,14 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
   return (
     <div className="space-y-4">
       {/* Upload Section */}
-      <Card className="p-4 border-dashed border-2">
+      <Card 
+        className={`p-4 border-dashed border-2 transition-colors ${
+          isDragging ? 'border-primary bg-primary/5' : ''
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
