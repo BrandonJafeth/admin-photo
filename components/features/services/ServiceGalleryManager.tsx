@@ -93,19 +93,19 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
     processFiles(files)
   }
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleUploadDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
     setIsDragging(true)
   }
 
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleUploadDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
     setIsDragging(false)
   }
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleUploadDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
     setIsDragging(false)
@@ -216,9 +216,9 @@ export function ServiceGalleryManager({ serviceId, disabled = false }: ServiceGa
         className={`p-4 border-dashed border-2 transition-colors ${
           isDragging ? 'border-primary bg-primary/5' : ''
         }`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        onDragOver={handleUploadDragOver}
+        onDragLeave={handleUploadDragLeave}
+        onDrop={handleUploadDrop}
       >
         <div className="space-y-4">
           <div className="flex items-center justify-between">
