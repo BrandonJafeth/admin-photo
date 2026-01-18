@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -75,6 +75,17 @@ export function PortfolioImageEditSheet({
       category_id: image.category_id || 'none',
     },
   })
+
+  useEffect(() => {
+    if (image) {
+      reset({
+        title: image.title || '',
+        alt: image.alt || '',
+        service_id: image.service_id || 'none',
+        category_id: image.category_id || 'none',
+      })
+    }
+  }, [image, reset])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -210,59 +221,64 @@ export function PortfolioImageEditSheet({
             </p>
           </div>
 
-          {/* Category & Service */}
-          <div className="space-y-4 pt-6 border-t">
-            <div className="space-y-2">
-              <Label>Categoría</Label>
-              <Controller
-                control={control}
-                name="category_id"
-                render={({ field }) => (
-                  <Select
-                    value={field.value || 'none'}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin categoría</SelectItem>
-                      {categories.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+          {/* Categoría */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">
+              Categoría <span className="text-red-500">*</span>
+            </Label>
+            <Controller
+              control={control}
+              name="category_id"
+              render={({ field }) => (
+                <Select
+                  value={field.value || 'none'}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin categoría</SelectItem>
+                    {categories.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+             <p className="text-xs text-slate-500">Selecciona la categoría para organizar la imagen</p>
+          </div>
 
-            <div className="space-y-2">
-              <Label>Servicio Vinculado</Label>
-              <Controller
-                control={control}
-                name="service_id"
-                render={({ field }) => (
-                  <Select
-                    value={field.value || 'none'}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar servicio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Ninguno (General)</SelectItem>
-                      {services.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-            </div>
+          {/* Servicio */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Servicio (Opcional)</Label>
+            <Controller
+              control={control}
+              name="service_id"
+              render={({ field }) => (
+                <Select
+                  value={field.value || 'none'}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar servicio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sin vincular</SelectItem>
+                    {services.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <p className="text-xs text-slate-500">
+              Vincula la imagen a un servicio específico
+            </p>
           </div>
 
           {/* Título */}

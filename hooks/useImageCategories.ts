@@ -21,6 +21,18 @@ export function useCreateImageCategory() {
   })
 }
 
+export function useUpdateImageCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, name, description }: { id: string; name: string; description?: string }) =>
+      ImageCategoriesService.update(id, name, description),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['image-categories'] })
+    },
+  })
+}
+
 export function useDeleteImageCategory() {
   const queryClient = useQueryClient()
 

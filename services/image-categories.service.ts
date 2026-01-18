@@ -29,6 +29,18 @@ export class ImageCategoriesService {
     return data
   }
 
+  static async update(id: string, name: string, description?: string): Promise<ImageCategory> {
+    const { data, error } = await supabase
+      .from('image_categories')
+      .update({ name, description })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
   static async delete(id: string): Promise<void> {
     const { error } = await supabase
       .from('image_categories')
