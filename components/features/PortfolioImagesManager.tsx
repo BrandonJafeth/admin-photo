@@ -11,8 +11,9 @@ import { useServices } from '@/hooks/useServices'
 import { useImageCategories } from '@/hooks/useImageCategories'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil, ArrowDownUp, X, Loader2, Filter } from 'lucide-react'
+import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil, ArrowDownUp, X, Loader2, Filter, Search, Tag, Briefcase } from 'lucide-react'
 import { PortfolioImageEditSheet } from './portfolio-images/PortfolioImageEditSheet'
 import { PortfolioImageUploadSheet } from './portfolio-images/PortfolioImageUploadSheet'
 import { CategoryManagerDialog } from './portfolio-images/CategoryManagerDialog'
@@ -47,6 +48,7 @@ export default function PortfolioImagesManager() {
 
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [serviceFilter, setServiceFilter] = useState<string>("all")
+  const [searchTerm, setSearchTerm] = useState("")
   
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -59,6 +61,25 @@ export default function PortfolioImagesManager() {
   const [togglingId, setTogglingId] = useState<string | null>(null)
 
   const nextOrder = images.length > 0 ? Math.max(...images.map(img => img.order)) + 1 : 0
+
+  // Filter images matches moved here
+  const filteredImages = images.filter(image => {
+    if (categoryFilter !== 'all' && image.category_id !== categoryFilter) return false
+    if (serviceFilter !== 'all' && image.service_id !== serviceFilter) return false
+    
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase()
+      const titleMatch = image.title?.toLowerCase().includes(term)
+      const altMatch = image.alt?.toLowerCase().includes(term)
+      return titleMatch || altMatch
+    }
+    
+    return true
+  })
+
+  // Sort by order
+  filteredImages.sort((a, b) => a.order - b.order)
 
   const handleDragStart = (id: string, e: React.DragEvent) => {
     if (!isReordering) return
@@ -93,23 +114,27 @@ export default function PortfolioImagesManager() {
       return
     }
 
-    const draggedIndex = images.findIndex(img => img.id === draggedId)
-    const targetIndex = images.findIndex(img => img.id === targetId)
+    const draggedIndex = filteredImages.findIndex(img => img.id === draggedId)
+    const targetIndex = filteredImages.findIndex(img => img.id === targetId)
 
     if (draggedIndex === -1 || targetIndex === -1) {
       setDraggedId(null)
       return
     }
 
-    // Crear nuevo array con orden actualizado
-    const newImages = [...images]
-    const [draggedImage] = newImages.splice(draggedIndex, 1)
-    newImages.splice(targetIndex, 0, draggedImage)
+    // Crear nuevo array con orden actualizado basado en la lista filtrada
+    const newFilteredList = [...filteredImages]
+    const [draggedImage] = newFilteredList.splice(draggedIndex, 1)
+    newFilteredList.splice(targetIndex, 0, draggedImage)
+
+    // Estrategia: Redistribuir los valores de 'order' disponibles entre los elementos filtrados
+    // Esto asegura que se mantengan en sus "slots" relativos en la lista global
+    const availableOrders = filteredImages.map(img => img.order).sort((a, b) => a - b)
 
     // Actualizar orden
-    const updates = newImages.map((img, index) => ({
+    const updates = newFilteredList.map((img, index) => ({
       id: img.id,
-      order: index,
+      order: availableOrders[index],
     }))
 
     try {
@@ -164,16 +189,6 @@ export default function PortfolioImagesManager() {
       setImageToDelete(null)
     }
   }
-
-  // Filter images
-  const filteredImages = images.filter(image => {
-    if (categoryFilter !== 'all' && image.category_id !== categoryFilter) return false
-    if (serviceFilter !== 'all' && image.service_id !== serviceFilter) return false
-    return true
-  })
-
-  // Sort by order
-  filteredImages.sort((a, b) => a.order - b.order)
 
   const editingImage = images.find(img => img.id === editingId)
 
@@ -231,10 +246,6 @@ export default function PortfolioImagesManager() {
               variant={isReordering ? "default" : "outline"}
               size="sm"
               onClick={() => {
-                if (!isReordering) {
-                  setCategoryFilter("all")
-                  setServiceFilter("all")
-                }
                 setIsReordering(!isReordering)
               }}
               className="w-full sm:w-auto"
@@ -254,68 +265,83 @@ export default function PortfolioImagesManager() {
           </div>
         </div>
 
-        {/* Filters */}
-        {!isReordering && (
-           <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-slate-50 border border-slate-100 rounded-lg">
-             <div className="flex items-center gap-2 text-slate-500 mb-2 sm:mb-0">
-               <Filter className="w-4 h-4" />
-               <span className="text-sm font-medium">Filtrar por:</span>
-             </div>
-             
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-               <div className="space-y-1.5">
-                 <Label className="text-xs text-slate-500 ml-1">Categoría</Label>
-                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                   <SelectTrigger className="bg-white border-slate-200">
-                     <SelectValue placeholder="Todas las categorías" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="all">Todas las categorías</SelectItem>
-                     {categories.map((cat) => (
-                       <SelectItem key={cat.id} value={cat.id}>
-                         {cat.name}
-                       </SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-               </div>
+{/* Filters and Search Toolbar */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-6">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Buscar por título o descripción..."
+              className="pl-9 bg-white border-slate-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-               <div className="space-y-1.5">
-                 <Label className="text-xs text-slate-500 ml-1">Servicio</Label>
-                 <Select value={serviceFilter} onValueChange={setServiceFilter}>
-                   <SelectTrigger className="bg-white border-slate-200">
-                     <SelectValue placeholder="Todos los servicios" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="all">Todos los servicios</SelectItem>
-                     <SelectItem value="none">Sin servicio (General)</SelectItem>
-                     {services.map((svc) => (
-                       <SelectItem key={svc.id} value={svc.id}>
-                         {svc.title}
-                       </SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-               </div>
-             </div>
+          {/* Filter Dropdowns */}
+          <div className="flex flex-wrap gap-2">
+             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+               <SelectTrigger className="w-full sm:w-[200px] bg-white border-slate-200">
+                 <div className="flex items-center gap-2 truncate text-slate-600">
+                   <Tag className="w-4 h-4" />
+                   <span className="truncate">
+                     {categoryFilter === 'all' 
+                        ? 'Todas las categorías' 
+                        : categories.find(c => c.id === categoryFilter)?.name || 'Categoría'}
+                   </span>
+                 </div>
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="all">Todas las categorías</SelectItem>
+                 {categories.map((cat) => (
+                   <SelectItem key={cat.id} value={cat.id}>
+                     {cat.name}
+                   </SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
 
-             {(categoryFilter !== 'all' || serviceFilter !== 'all') && (
-                <div className="flex items-end">
-                   <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => {
-                      setCategoryFilter('all')
-                      setServiceFilter('all')
-                    }}
-                    className="h-10 text-slate-500 hover:text-slate-900"
-                   >
-                     Limpiar filtros
-                   </Button>
-                </div>
+             <Select value={serviceFilter} onValueChange={setServiceFilter}>
+               <SelectTrigger className="w-full sm:w-[200px] bg-white border-slate-200">
+                 <div className="flex items-center gap-2 truncate text-slate-600">
+                   <Briefcase className="w-4 h-4" />
+                   <span className="truncate">
+                      {serviceFilter === 'all' 
+                        ? 'Todos los servicios' 
+                        : serviceFilter === 'none'
+                          ? 'Sin servicio'
+                          : services.find(s => s.id === serviceFilter)?.title || 'Servicio'}
+                   </span>
+                 </div>
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="all">Todos los servicios</SelectItem>
+                 <SelectItem value="none">Sin servicio (General)</SelectItem>
+                 {services.map((svc) => (
+                   <SelectItem key={svc.id} value={svc.id}>
+                     {svc.title}
+                   </SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+
+             {(categoryFilter !== 'all' || serviceFilter !== 'all' || searchTerm) && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => {
+                    setCategoryFilter('all')
+                    setServiceFilter('all')
+                    setSearchTerm('')
+                  }}
+                  className="text-slate-500 hover:text-red-600 hover:bg-red-50"
+                  title="Limpiar filtros"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
              )}
+          </div>
            </div>
-        )}
 
         {filteredImages.length === 0 ? (
           <Card className="p-8 text-center bg-white border border-slate-200">
