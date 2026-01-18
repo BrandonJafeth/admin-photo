@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Upload, Trash2, Eye, EyeOff, GripVertical, Pencil, ArrowDownUp, X, Loader2 } from 'lucide-react'
 import { PortfolioImageEditSheet } from './portfolio-images/PortfolioImageEditSheet'
 import { PortfolioImageUploadSheet } from './portfolio-images/PortfolioImageUploadSheet'
+import { CategoryManagerDialog } from './portfolio-images/CategoryManagerDialog'
 import { toast } from 'sonner'
 import {
   AlertDialog,
@@ -174,13 +175,16 @@ export default function PortfolioImagesManager() {
               Completa los detalles y sube la imagen en un solo paso
             </p>
           </div>
-          <Button
-            onClick={() => setIsUploadSheetOpen(true)}
-            className="gap-2 w-full sm:w-auto"
-          >
-            <Upload className="w-4 h-4" />
-            Nueva Imagen
-          </Button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <CategoryManagerDialog />
+            <Button
+              onClick={() => setIsUploadSheetOpen(true)}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Upload className="w-4 h-4" />
+              Nueva Imagen
+            </Button>
+          </div>
         </div>
       </div>
 

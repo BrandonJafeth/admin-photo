@@ -1,3 +1,5 @@
+import { compressImage } from '@/lib/image-compression'
+
 /**
  * Utilidades para subir imágenes a Cloudinary
  */
@@ -26,8 +28,11 @@ export async function uploadToCloudinary(
     throw new Error('Cloudinary configuration is missing')
   }
 
+  // Comprimir imagen antes de subir (max 2000px, 80% calidad)
+  const compressedFile = await compressImage(file, 2000, 0.8)
+
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', compressedFile)
   formData.append('upload_preset', uploadPreset)
   formData.append('folder', folder)
 

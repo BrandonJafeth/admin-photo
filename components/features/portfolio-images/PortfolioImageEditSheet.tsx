@@ -1,16 +1,24 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { PortfolioImage } from '@/services/portfolio-images.service'
 import { useUpdatePortfolioImage } from '@/hooks/usePortfolioImages'
 import { useServices } from '@/hooks/useServices'
+import { useImageCategories } from '@/hooks/useImageCategories'
 import { uploadToCloudinary, getImageValidationError } from '@/lib/cloudinary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -24,6 +32,8 @@ import { toast } from 'sonner'
 const portfolioImageEditSchema = z.object({
   title: z.string().max(200, 'El título es demasiado largo (máx. 200 caracteres)').optional().or(z.literal('')),
   alt: z.string().max(200, 'El texto alternativo es demasiado largo (máx. 200 caracteres)').optional().or(z.literal('')),
+  service_id: z.string().optional().nullable(),
+  category_id: z.string().optional().nullable(),
 })
 
 type PortfolioImageEditFormData = z.infer<typeof portfolioImageEditSchema>
@@ -47,9 +57,11 @@ export function PortfolioImageEditSheet({
 
   const updateImage = useUpdatePortfolioImage()
   const { data: services = [] } = useServices()
+  const { data: categories = [] } = useImageCategories()
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     reset,
@@ -59,6 +71,8 @@ export function PortfolioImageEditSheet({
     defaultValues: {
       title: image.title || '',
       alt: image.alt || '',
+      service_id: image.service_id || 'none',
+      category_id: image.category_id || 'none',
     },
   })
 
@@ -108,6 +122,8 @@ export function PortfolioImageEditSheet({
       payload: {
         title: normalize(data.title),
         alt: normalize(data.alt),
+        service_id: data.service_id === 'none' ? null : data.service_id,
+        category_id: data.category_id === 'none' ? null : data.category_id,
       },
     })
     toast.success('¡Imagen actualizada!', {
@@ -192,6 +208,61 @@ export function PortfolioImageEditSheet({
             <p className="text-xs text-slate-500">
               Formatos: JPEG, PNG, WebP, GIF • Máximo: 5MB
             </p>
+          </div>
+
+          {/* Category & Service */}
+          <div className="space-y-4 pt-6 border-t">
+            <div className="space-y-2">
+              <Label>Categoría</Label>
+              <Controller
+                control={control}
+                name="category_id"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || 'none'}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin categoría</SelectItem>
+                      {categories.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Servicio Vinculado</Label>
+              <Controller
+                control={control}
+                name="service_id"
+                render={({ field }) => (
+                  <Select
+                    value={field.value || 'none'}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar servicio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Ninguno (General)</SelectItem>
+                      {services.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
           </div>
 
           {/* Título */}

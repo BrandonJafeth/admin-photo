@@ -17,4 +17,24 @@ export class ImageCategoriesService {
     if (error) throw error
     return data || []
   }
+
+  static async create(name: string, description?: string): Promise<ImageCategory> {
+    const { data, error } = await supabase
+      .from('image_categories')
+      .insert({ name, description })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  static async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('image_categories')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw error
+  }
 }
