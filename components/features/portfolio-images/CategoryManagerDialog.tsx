@@ -138,6 +138,7 @@ export function CategoryManagerDialog() {
                             className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                             onClick={() => handleDelete(category.id)}
                             disabled={deleteCategory.isPending}
+                            aria-label={`Eliminar categoría ${category.name}`}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

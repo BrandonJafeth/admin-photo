@@ -301,7 +301,11 @@ export default function PortfolioImagesManager() {
 
                   {/* Drag Handle - Solo visible en modo reordering */}
                   {isReordering && (
-                    <div className="absolute top-2 left-2 bg-blue-600 text-white p-2 rounded cursor-move shadow-lg">
+                    <div 
+                      className="absolute top-2 left-2 bg-blue-600 text-white p-2 rounded cursor-move shadow-lg"
+                      role="button"
+                      aria-label="Arrastrar para reordenar"
+                    >
                       <GripVertical className="w-4 h-4" />
                     </div>
                   )}
@@ -344,6 +348,7 @@ export default function PortfolioImagesManager() {
                         onClick={() => handleToggleVisibility(image.id, image.is_visible)}
                         className="flex-1"
                         disabled={togglingId === image.id}
+                        aria-label={image.is_visible ? "Ocultar imagen" : "Mostrar imagen"}
                       >
                         {togglingId === image.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -358,6 +363,7 @@ export default function PortfolioImagesManager() {
                         variant="destructive"
                         onClick={() => handleDelete(image.id)}
                         className="flex-1"
+                        aria-label="Eliminar imagen"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
